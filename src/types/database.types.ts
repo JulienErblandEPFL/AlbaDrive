@@ -78,6 +78,7 @@ export interface Database {
           deleted_at?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
 
       // ----------------------------------------------------------
@@ -129,6 +130,7 @@ export interface Database {
           deleted_at?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
 
       // ----------------------------------------------------------
@@ -164,6 +166,7 @@ export interface Database {
           deleted_at?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
 
@@ -177,6 +180,7 @@ export interface Database {
           full_name: string;
           avatar_url: string | null;
         };
+        Relationships: [];
       };
     };
 
