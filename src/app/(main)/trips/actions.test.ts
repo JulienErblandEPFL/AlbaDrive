@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER } from "@/lib/test-utils/supabase-mock";
-import { createTrip } from "./actions";
+import { createTrip, cancelTrip } from "./actions";
 
 vi.mock("@/lib/supabase/server");
 
@@ -93,5 +93,75 @@ describe("createTrip", () => {
 
     expect(result.success).toBe(false);
     expect((result as { error: string }).error).toBe("Failed to create trip. Please try again.");
+  });
+});
+
+describe("cancelTrip", () => {
+  let mockSingle: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const { mockClient, mockSingle: single } = buildSupabaseMock();
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+  });
+
+  it("returns error when unauthenticated", async () => {
+    const { mockClient } = buildSupabaseMock({ user: null, authError: { message: "No session" } });
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    const result = await cancelTrip({ trip_id: "trip-abc-123" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentication required.");
+  });
+
+  it("returns error when trip_id is not a valid UUID", async () => {
+    const result = await cancelTrip({ trip_id: "not-a-uuid" });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("returns error when trip is not found", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "No rows" } });
+
+    const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Trip not found.");
+  });
+
+  it("returns Unauthorized when user is not the driver", async () => {
+    mockSingle.mockResolvedValue({
+      data: { driver_id: "someone-else-id", status: "open" },
+      error: null,
+    });
+
+    const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Unauthorized.");
+  });
+
+  it("returns error when trip is already cancelled", async () => {
+    mockSingle.mockResolvedValue({
+      data: { driver_id: MOCK_USER.id, status: "cancelled" },
+      error: null,
+    });
+
+    const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toContain("cancelled");
+  });
+
+  it("successfully cancels an open trip", async () => {
+    mockSingle
+      .mockResolvedValueOnce({ data: { driver_id: MOCK_USER.id, status: "open" }, error: null })
+      .mockResolvedValueOnce({ data: {}, error: null });
+
+    const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(true);
   });
 });
