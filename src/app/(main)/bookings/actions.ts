@@ -10,7 +10,7 @@ import {
   getWhatsAppLinkSchema,
 } from "@/lib/validations/booking.schema";
 import type { ActionResult } from "@/types/actions";
-import type { BookingRow } from "@/types/database.types";
+import type { BookingRow, BookingStatus, TripStatus } from "@/types/database.types";
 
 export async function requestBooking(rawData: unknown): Promise<ActionResult<BookingRow>> {
   const supabase = await createServerClient();
@@ -96,18 +96,25 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
     return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const { data: booking, error: fetchError } = await supabase
+  type BookingWithTripData = {
+    status: BookingStatus;
+    passenger_id: string;
+    seats_requested: number;
+    trip: { driver_id: string; status: TripStatus; available_seats: number };
+  };
+
+  const { data: booking, error: fetchError } = (await supabase
     .from("bookings")
     .select("status, passenger_id, seats_requested, trip:trips(driver_id, status, available_seats)")
     .eq("id", parsed.data.booking_id)
     .is("deleted_at", null)
-    .single();
+    .single()) as { data: BookingWithTripData | null; error: Error | null };
 
   if (fetchError || !booking) {
     return { success: false, error: "Booking not found." };
   }
 
-  const trip = booking.trip as { driver_id: string; status: string; available_seats: number };
+  const trip = booking.trip;
 
   if (trip.driver_id !== user.id) {
     return { success: false, error: "Unauthorized." };
@@ -205,18 +212,24 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
   }
 
   // Step 1: Verify booking exists and caller is a party to it
-  const { data: booking, error: bookingError } = await supabase
+  type BookingWithDriver = {
+    status: BookingStatus;
+    passenger_id: string;
+    trip: { driver_id: string };
+  };
+
+  const { data: booking, error: bookingError } = (await supabase
     .from("bookings")
     .select("status, passenger_id, trip:trips(driver_id)")
     .eq("id", parsed.data.booking_id)
     .is("deleted_at", null)
-    .single();
+    .single()) as { data: BookingWithDriver | null; error: Error | null };
 
   if (bookingError || !booking) {
     return { success: false, error: "Booking not found." };
   }
 
-  const driverId = (booking.trip as { driver_id: string }).driver_id;
+  const driverId = booking.trip.driver_id;
   const isDriver = driverId === user.id;
   const isPassenger = booking.passenger_id === user.id;
 
