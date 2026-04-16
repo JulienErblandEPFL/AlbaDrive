@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   requestBookingSchema,
+  acceptBookingSchema,
 } from "@/lib/validations/booking.schema";
 import type { ActionResult } from "@/types/actions";
 import type { BookingRow } from "@/types/database.types";
@@ -80,9 +81,58 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
   return { success: true, data: booking };
 }
 
-// Stubs — implemented in Tasks 6, 7, 8
-export async function acceptBooking(_rawData: unknown): Promise<ActionResult<BookingRow>> {
-  return { success: false, error: "Not implemented" };
+export async function acceptBooking(rawData: unknown): Promise<ActionResult<BookingRow>> {
+  const supabase = await createServerClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const parsed = acceptBookingSchema.safeParse(rawData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("status, passenger_id, seats_requested, trip:trips(driver_id, status, available_seats)")
+    .eq("id", parsed.data.booking_id)
+    .is("deleted_at", null)
+    .single();
+
+  if (fetchError || !booking) {
+    return { success: false, error: "Booking not found." };
+  }
+
+  const trip = booking.trip as { driver_id: string; status: string; available_seats: number };
+
+  if (trip.driver_id !== user.id) {
+    return { success: false, error: "Unauthorized." };
+  }
+  if (booking.status !== "pending") {
+    return { success: false, error: "Only pending bookings can be accepted." };
+  }
+  if (trip.available_seats < booking.seats_requested) {
+    return { success: false, error: "Not enough seats available." };
+  }
+
+  // DB trigger handle_booking_accepted will atomically decrement available_seats,
+  // set trip to 'full' if needed, and auto-decline other pending bookings.
+  const { data: updated, error: updateError } = await supabase
+    .from("bookings")
+    .update({ status: "accepted" })
+    .eq("id", parsed.data.booking_id)
+    .select()
+    .single();
+
+  if (updateError) {
+    console.error("[acceptBooking]", updateError.message);
+    return { success: false, error: "Failed to accept booking. Please try again." };
+  }
+
+  revalidatePath("/bookings");
+  return { success: true, data: updated };
 }
 
 export async function cancelBooking(_rawData: unknown): Promise<ActionResult> {

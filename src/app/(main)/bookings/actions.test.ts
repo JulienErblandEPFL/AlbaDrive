@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER, MOCK_PASSENGER } from "@/lib/test-utils/supabase-mock";
-import { requestBooking } from "./actions";
+import { requestBooking, acceptBooking } from "./actions";
 
 vi.mock("@/lib/supabase/server");
 
@@ -137,5 +137,113 @@ describe("requestBooking", () => {
 
     expect(result.success).toBe(false);
     expect((result as { error: string }).error).toContain("already have an active booking");
+  });
+});
+
+describe("acceptBooking", () => {
+  let mockSingle: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // acceptBooking is called by the DRIVER
+    const { mockClient, mockSingle: single } = buildSupabaseMock({ user: MOCK_USER });
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+  });
+
+  it("returns error when unauthenticated", async () => {
+    const { mockClient } = buildSupabaseMock({ user: null, authError: { message: "No session" } });
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentication required.");
+  });
+
+  it("returns error when booking is not found", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "Not found" } });
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Booking not found.");
+  });
+
+  it("returns Unauthorized when caller is not the trip driver", async () => {
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "pending",
+        passenger_id: MOCK_PASSENGER.id,
+        seats_requested: 1,
+        trip: { driver_id: "another-driver-id", status: "open", available_seats: 3 },
+      },
+      error: null,
+    });
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Unauthorized.");
+  });
+
+  it("returns error when booking is not in pending status", async () => {
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "accepted",
+        passenger_id: MOCK_PASSENGER.id,
+        seats_requested: 1,
+        trip: { driver_id: MOCK_USER.id, status: "open", available_seats: 2 },
+      },
+      error: null,
+    });
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Only pending bookings can be accepted.");
+  });
+
+  it("returns error when not enough seats", async () => {
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "pending",
+        passenger_id: MOCK_PASSENGER.id,
+        seats_requested: 3,
+        trip: { driver_id: MOCK_USER.id, status: "open", available_seats: 2 },
+      },
+      error: null,
+    });
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Not enough seats available.");
+  });
+
+  it("accepts a valid pending booking", async () => {
+    const updatedBooking = {
+      id: "00000000-0000-0000-0000-000000000000",
+      status: "accepted",
+      passenger_id: MOCK_PASSENGER.id,
+      seats_requested: 1,
+    };
+
+    mockSingle
+      .mockResolvedValueOnce({
+        data: {
+          status: "pending",
+          passenger_id: MOCK_PASSENGER.id,
+          seats_requested: 1,
+          trip: { driver_id: MOCK_USER.id, status: "open", available_seats: 3 },
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: updatedBooking, error: null });
+
+    const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(true);
+    expect((result as { data: typeof updatedBooking }).data!.status).toBe("accepted");
   });
 });
