@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER, MOCK_PASSENGER } from "@/lib/test-utils/supabase-mock";
-import { requestBooking, acceptBooking, cancelBooking } from "./actions";
+import { requestBooking, acceptBooking, cancelBooking, getWhatsAppLink } from "./actions";
 
 vi.mock("@/lib/supabase/server");
 
@@ -320,5 +320,160 @@ describe("cancelBooking", () => {
     const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(true);
+  });
+});
+
+const BOOKING_ID = "00000000-0000-0000-0000-000000000000";
+
+describe("getWhatsAppLink — security", () => {
+  let mockSingle: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const { mockClient, mockSingle: single } = buildSupabaseMock({ user: MOCK_PASSENGER });
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+  });
+
+  it("returns error when unauthenticated", async () => {
+    const { mockClient } = buildSupabaseMock({ user: null, authError: { message: "No session" } });
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentication required.");
+  });
+
+  it("🔒 returns error when booking status is 'pending' — not yet accepted", async () => {
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "pending",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe(
+      "WhatsApp link is only available for accepted bookings."
+    );
+  });
+
+  it("🔒 returns error when caller is neither the driver nor the passenger", async () => {
+    const { mockClient, mockSingle: single } = buildSupabaseMock({
+      user: { id: "random-user-000", email: "hacker@evil.com" },
+    });
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "accepted",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Unauthorized.");
+  });
+
+  it("🔒 returns error when booking is 'declined' (not accepted)", async () => {
+    mockSingle.mockResolvedValue({
+      data: {
+        status: "declined",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe(
+      "WhatsApp link is only available for accepted bookings."
+    );
+  });
+
+  it("returns passenger link (to contact driver) when called as passenger", async () => {
+    // 1st call: booking check
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        status: "accepted",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+    // 2nd call: other party (driver) profile
+    mockSingle.mockResolvedValueOnce({
+      data: { id: MOCK_USER.id, full_name: "Artan Doci", phone: "+41791234567" },
+      error: null,
+    });
+    // 3rd call: own (passenger) profile
+    mockSingle.mockResolvedValueOnce({
+      data: { id: MOCK_PASSENGER.id, full_name: "Blerina Kelmendi", phone: "+49151234567" },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: { role: string; link_to_contact: string; other_party_name: string } }).data!;
+    expect(data.role).toBe("passenger");
+    expect(data.link_to_contact).toMatch(/wa\.me\/41791234567/);
+    expect(data.other_party_name).toBe("Artan Doci");
+    // Must NOT contain the passenger's own number
+    expect(data.link_to_contact).not.toMatch(/49151234567/);
+  });
+
+  it("returns driver link (to contact passenger) when called as driver", async () => {
+    const { mockClient, mockSingle: single } = buildSupabaseMock({ user: MOCK_USER });
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        status: "accepted",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+    // Other party = passenger profile
+    mockSingle.mockResolvedValueOnce({
+      data: { id: MOCK_PASSENGER.id, full_name: "Blerina Kelmendi", phone: "+49151234567" },
+      error: null,
+    });
+    // Own = driver profile
+    mockSingle.mockResolvedValueOnce({
+      data: { id: MOCK_USER.id, full_name: "Artan Doci", phone: "+41791234567" },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: { role: string; link_to_contact: string; other_party_name: string } }).data!;
+    expect(data.role).toBe("driver");
+    expect(data.link_to_contact).toMatch(/wa\.me\/49151234567/);
+    expect(data.other_party_name).toBe("Blerina Kelmendi");
+  });
+
+  it("returns error when booking is not found", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "Not found" } });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Booking not found.");
   });
 });

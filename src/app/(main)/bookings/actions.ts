@@ -7,6 +7,7 @@ import {
   requestBookingSchema,
   acceptBookingSchema,
   cancelBookingSchema,
+  getWhatsAppLinkSchema,
 } from "@/lib/validations/booking.schema";
 import type { ActionResult } from "@/types/actions";
 import type { BookingRow } from "@/types/database.types";
@@ -183,10 +184,92 @@ export async function cancelBooking(rawData: unknown): Promise<ActionResult> {
   return { success: true };
 }
 
-export async function getWhatsAppLink(_rawData: unknown): Promise<ActionResult<{
+interface WhatsAppResult {
   role: "driver" | "passenger";
   other_party_name: string;
+  /** The wa.me link the current user should use to initiate contact */
   link_to_contact: string;
-}>> {
-  return { success: false, error: "Not implemented" };
+}
+
+export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<WhatsAppResult>> {
+  const supabase = await createServerClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const parsed = getWhatsAppLinkSchema.safeParse(rawData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  // Step 1: Verify booking exists and caller is a party to it
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .select("status, passenger_id, trip:trips(driver_id)")
+    .eq("id", parsed.data.booking_id)
+    .is("deleted_at", null)
+    .single();
+
+  if (bookingError || !booking) {
+    return { success: false, error: "Booking not found." };
+  }
+
+  const driverId = (booking.trip as { driver_id: string }).driver_id;
+  const isDriver = driverId === user.id;
+  const isPassenger = booking.passenger_id === user.id;
+
+  if (!isDriver && !isPassenger) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  // CRITICAL: double-verify status server-side before exposing any phone number
+  if (booking.status !== "accepted") {
+    return {
+      success: false,
+      error: "WhatsApp link is only available for accepted bookings.",
+    };
+  }
+
+  // Step 2: Fetch the other party's profile (phone gated by RLS on accepted bookings)
+  const otherPartyId = isDriver ? booking.passenger_id : driverId;
+
+  const { data: otherParty, error: otherPartyError } = await supabase
+    .from("profiles")
+    .select("id, full_name, phone")
+    .eq("id", otherPartyId)
+    .is("deleted_at", null)
+    .single();
+
+  if (otherPartyError || !otherParty?.phone) {
+    return { success: false, error: "Contact information unavailable." };
+  }
+
+  // Step 3: Fetch own profile to verify we also have a phone
+  const { data: ownProfile } = await supabase
+    .from("profiles")
+    .select("id, full_name, phone")
+    .eq("id", user.id)
+    .is("deleted_at", null)
+    .single();
+
+  if (!ownProfile?.phone) {
+    return { success: false, error: "Your profile is missing a phone number." };
+  }
+
+  // Build wa.me link for the other party — strip all non-digit chars from E.164 number
+  const otherPhone = otherParty.phone.replace(/\D/g, "");
+  const message = isPassenger
+    ? encodeURIComponent("Salam! Rezervova një vend në udhëtimin tuaj. A mund të komunikojmë?")
+    : encodeURIComponent("Salam! Jam shoferi i udhëtimit. Rezervimi juaj është konfirmuar.");
+
+  return {
+    success: true,
+    data: {
+      role: isDriver ? "driver" : "passenger",
+      other_party_name: otherParty.full_name,
+      link_to_contact: `https://wa.me/${otherPhone}?text=${message}`,
+    },
+  };
 }
