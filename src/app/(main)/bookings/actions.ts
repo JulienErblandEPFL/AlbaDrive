@@ -6,6 +6,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import {
   requestBookingSchema,
   acceptBookingSchema,
+  cancelBookingSchema,
 } from "@/lib/validations/booking.schema";
 import type { ActionResult } from "@/types/actions";
 import type { BookingRow } from "@/types/database.types";
@@ -135,8 +136,51 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
   return { success: true, data: updated };
 }
 
-export async function cancelBooking(_rawData: unknown): Promise<ActionResult> {
-  return { success: false, error: "Not implemented" };
+export async function cancelBooking(rawData: unknown): Promise<ActionResult> {
+  const supabase = await createServerClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const parsed = cancelBookingSchema.safeParse(rawData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("passenger_id, status")
+    .eq("id", parsed.data.booking_id)
+    .is("deleted_at", null)
+    .single();
+
+  if (fetchError || !booking) {
+    return { success: false, error: "Booking not found." };
+  }
+  if (booking.passenger_id !== user.id) {
+    return { success: false, error: "Unauthorized." };
+  }
+  if (!["pending", "accepted"].includes(booking.status)) {
+    return { success: false, error: "This booking cannot be cancelled." };
+  }
+
+  // If booking was 'accepted', the DB trigger handle_booking_seat_return
+  // will automatically return the seats to the trip.
+  const { error: updateError } = await supabase
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("id", parsed.data.booking_id)
+    .single();
+
+  if (updateError) {
+    console.error("[cancelBooking]", updateError.message);
+    return { success: false, error: "Failed to cancel booking. Please try again." };
+  }
+
+  revalidatePath("/bookings");
+  return { success: true };
 }
 
 export async function getWhatsAppLink(_rawData: unknown): Promise<ActionResult<{

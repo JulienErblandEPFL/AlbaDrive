@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER, MOCK_PASSENGER } from "@/lib/test-utils/supabase-mock";
-import { requestBooking, acceptBooking } from "./actions";
+import { requestBooking, acceptBooking, cancelBooking } from "./actions";
 
 vi.mock("@/lib/supabase/server");
 
@@ -245,5 +245,80 @@ describe("acceptBooking", () => {
 
     expect(result.success).toBe(true);
     expect((result as { data: typeof updatedBooking }).data!.status).toBe("accepted");
+  });
+});
+
+describe("cancelBooking", () => {
+  let mockSingle: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // cancelBooking is called by the PASSENGER
+    const { mockClient, mockSingle: single } = buildSupabaseMock({ user: MOCK_PASSENGER });
+    mockSingle = single;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+  });
+
+  it("returns error when unauthenticated", async () => {
+    const { mockClient } = buildSupabaseMock({ user: null, authError: { message: "No session" } });
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentication required.");
+  });
+
+  it("returns error when booking is not found", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "Not found" } });
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Booking not found.");
+  });
+
+  it("returns Unauthorized when caller is not the passenger", async () => {
+    mockSingle.mockResolvedValue({
+      data: { passenger_id: "another-passenger-id", status: "pending" },
+      error: null,
+    });
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Unauthorized.");
+  });
+
+  it("returns error when booking is in a non-cancellable status", async () => {
+    mockSingle.mockResolvedValue({
+      data: { passenger_id: MOCK_PASSENGER.id, status: "trip_cancelled" },
+      error: null,
+    });
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("This booking cannot be cancelled.");
+  });
+
+  it("cancels a pending booking", async () => {
+    mockSingle
+      .mockResolvedValueOnce({ data: { passenger_id: MOCK_PASSENGER.id, status: "pending" }, error: null })
+      .mockResolvedValueOnce({ data: {}, error: null });
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("cancels an accepted booking (DB trigger returns seats)", async () => {
+    mockSingle
+      .mockResolvedValueOnce({ data: { passenger_id: MOCK_PASSENGER.id, status: "accepted" }, error: null })
+      .mockResolvedValueOnce({ data: {}, error: null });
+
+    const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
+
+    expect(result.success).toBe(true);
   });
 });
