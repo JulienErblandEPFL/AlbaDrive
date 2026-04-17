@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── AlbaDrive Design Tokens ───────────────────────────────── */
+/*
+  Palette: Warm stone grounds + deep Albanian red accent.
+  Font: DM Sans — humanist, highly legible on mobile, warm.
+*/
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #fafaf9; /* stone-50 */
+  color: #1c1917;            /* stone-900 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring — always visible, brand-colored */
+*:focus-visible {
+  outline: 2px solid #991b1b; /* red-800 */
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Touch manipulation — removes 300ms tap delay on mobile */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }
