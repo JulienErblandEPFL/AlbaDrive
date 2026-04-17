@@ -14,6 +14,7 @@ import type { LocationJsonb } from "@/types/database.types";
 interface TripCardProps {
   trip: {
     id: string;
+    driver_id: string;
     origin: LocationJsonb;
     destination: LocationJsonb;
     departure_at: string;
@@ -137,9 +138,22 @@ export function TripCard({ trip, driverName, currentUserId }: TripCardProps) {
           </div>
         )}
 
-        {/* CTA — varies by auth state */}
+        {/* CTA — varie selon authentification et propriété du trajet */}
         {result?.type !== "success" && (
-          currentUserId ? (
+          currentUserId === trip.driver_id ? (
+            // L'utilisateur est le conducteur de ce trajet
+            <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-stone-100 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-red-700 shrink-0" aria-hidden="true" />
+              <span className="text-xs font-semibold text-stone-600">Votre trajet</span>
+              <Link
+                href={`/trips/${trip.id}`}
+                className="ml-auto text-xs text-stone-400 hover:text-red-700 transition-colors"
+              >
+                Voir →
+              </Link>
+            </div>
+          ) : currentUserId ? (
+            // Utilisateur connecté, pas le conducteur → formulaire de réservation
             <button
               onClick={() => setIsFormOpen((v) => !v)}
               className="mt-4 w-full flex items-center justify-between px-4 h-11 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 active:bg-red-950 transition-colors duration-150 cursor-pointer"
@@ -152,6 +166,7 @@ export function TripCard({ trip, driverName, currentUserId }: TripCardProps) {
               />
             </button>
           ) : (
+            // Visiteur non connecté → lien vers le détail
             <div className="mt-4 flex items-center gap-3">
               <Link
                 href={`/trips/${trip.id}`}

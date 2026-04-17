@@ -2,25 +2,32 @@
 // ─────────────────────────────────────────────────────────────
 // Responsibilities (in order):
 //  1. Refresh the Supabase session on every request (cookie rewrite).
-//  2. Redirect unauthenticated users away from protected routes.
-//  3. Redirect authenticated users without a profile to /complete-profile.
-//  4. Redirect authenticated users away from auth-only pages.
+//  2. Redirect unauthenticated users away from auth-required routes.
+//  3. Redirect authenticated users away from auth-only pages.
+//  4. Redirect authenticated users without a profile away from
+//     routes that require a complete profile.
 //
-// Public by default: /, /trips, /trips/[id], /auth/*
-// Protected (auth required): /dashboard, /trips/create, /complete-profile
-// Auth-only (unauthenticated only): /login, /register
+// Route visibility matrix:
+//  /                   → public (anyone)
+//  /trips              → public (anyone)
+//  /trips/[id]         → public (anyone)
+//  /trips/create       → protected (auth + profile required)
+//  /dashboard          → protected (auth + profile required)
+//  /complete-profile   → auth only (no profile required — they're creating it)
+//  /login /register    → auth-only pages (redirect authenticated users out)
+//  /auth/*             → public (OAuth callback)
 // ─────────────────────────────────────────────────────────────
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Pages only accessible when NOT logged in. */
+/** Pages only for unauthenticated users — authenticated users are redirected away. */
 const AUTH_ONLY_PREFIXES = ["/login", "/register"];
 
-/** Pages that require a valid session. Everything else is public. */
-const PROTECTED_PREFIXES = ["/dashboard", "/trips/create", "/complete-profile"];
+/** Pages requiring auth + a complete profile. */
+const PROTECTED_PREFIXES = ["/dashboard", "/trips/create"];
 
-/** Skip the profile-completeness check on these paths to avoid redirect loops. */
-const SKIP_PROFILE_CHECK_PREFIXES = ["/complete-profile", "/auth/"];
+/** Page requiring auth but NOT a profile (the user is actively creating one). */
+const PROFILE_SETUP_PATH = "/complete-profile";
 
 function matchesPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(prefix + "/");
@@ -64,19 +71,28 @@ export async function middleware(request: NextRequest) {
 
   // ── Unauthenticated visitor ─────────────────────────────────
   if (!user) {
-    if (matchesAny(pathname, PROTECTED_PREFIXES)) {
+    // Protected routes and profile setup both require a session.
+    const requiresAuth =
+      matchesAny(pathname, PROTECTED_PREFIXES) ||
+      matchesPrefix(pathname, PROFILE_SETUP_PATH);
+
+    if (requiresAuth) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
+    // Everything else (/, /trips, /trips/[id], /auth/*, /login, /register) is public.
     return supabaseResponse;
   }
 
   // ── Authenticated user on auth-only pages ───────────────────
+  // They're already in — send them to the dashboard.
   if (matchesAny(pathname, AUTH_ONLY_PREFIXES)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   // ── Profile completeness check ──────────────────────────────
-  if (!matchesAny(pathname, SKIP_PROFILE_CHECK_PREFIXES)) {
+  // Only enforced for routes that truly require a complete profile.
+  // Public routes (/, /trips, /trips/[id]) and /complete-profile are exempt.
+  if (matchesAny(pathname, PROTECTED_PREFIXES)) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")

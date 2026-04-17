@@ -2,6 +2,7 @@
 // Public landing page — own header, hero, how-it-works, driver CTA.
 // Uses root layout only (no (main) layout shell).
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { SearchBar } from "./(main)/trips/components/SearchBar";
@@ -105,29 +106,40 @@ export default async function LandingPage() {
     <div className="flex flex-col min-h-dvh">
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section
-        className="relative overflow-hidden bg-stone-950 pt-16"
+        className="relative overflow-hidden min-h-[85vh] flex flex-col pt-16"
         aria-label="Accueil"
       >
-        {/* Dot-grid texture */}
+        {/* Background photo */}
+        <Image
+          src="/images/albania_up_sea.webp"
+          alt=""
+          fill
+          priority
+          className="object-cover"
+          aria-hidden="true"
+        />
+
+        {/* Dark overlay — ensures text readability */}
         <div
-          className="absolute inset-0 opacity-30 pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-stone-950/90 pointer-events-none"
+          aria-hidden="true"
+        />
+
+        {/* Subtle dot-grid texture on top of overlay */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
             backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)",
+              "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
             backgroundSize: "24px 24px",
           }}
           aria-hidden="true"
         />
 
-        {/* Diagonal red accent */}
-        <div
-          className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-red-950/60 blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-
         <LandingHeader isAuthenticated={isAuthenticated} />
 
-        <div className="relative max-w-3xl mx-auto px-6 pt-24 pb-20 text-center">
+        <div className="relative flex-1 flex items-center max-w-3xl mx-auto px-6 pt-16 pb-20 text-center w-full">
+        <div className="w-full">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-medium text-stone-300 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
@@ -172,10 +184,11 @@ export default async function LandingPage() {
             })}
           </div>
         </div>
+        </div>
 
         {/* Bottom fade */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-stone-50 pointer-events-none"
+          className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-stone-50 pointer-events-none"
           aria-hidden="true"
         />
       </section>

@@ -12,7 +12,7 @@ export async function createTrip(rawData: unknown): Promise<ActionResult<TripRow
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   const parsed = createTripSchema.safeParse(rawData);
@@ -32,7 +32,7 @@ export async function createTrip(rawData: unknown): Promise<ActionResult<TripRow
 
   if (dbError) {
     console.error("[createTrip]", dbError.message);
-    return { success: false, error: "Failed to create trip. Please try again." };
+    return { success: false, error: "La création du trajet a échoué. Veuillez réessayer." };
   }
 
   revalidatePath("/trips");
@@ -44,7 +44,7 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   const parsed = cancelTripSchema.safeParse(rawData);
@@ -60,13 +60,14 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
     .single();
 
   if (fetchError || !trip) {
-    return { success: false, error: "Trip not found." };
+    return { success: false, error: "Trajet introuvable." };
   }
   if (trip.driver_id !== user.id) {
-    return { success: false, error: "Unauthorized." };
+    return { success: false, error: "Action non autorisée." };
   }
+  const statusLabels: Record<string, string> = { cancelled: "annulé", completed: "terminé" };
   if (trip.status === "cancelled" || trip.status === "completed") {
-    return { success: false, error: `Trip is already ${trip.status}.` };
+    return { success: false, error: `Ce trajet est déjà ${statusLabels[trip.status] ?? trip.status}.` };
   }
 
   const { error: updateError } = await supabase
@@ -77,7 +78,7 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
 
   if (updateError) {
     console.error("[cancelTrip]", updateError.message);
-    return { success: false, error: "Failed to cancel trip. Please try again." };
+    return { success: false, error: "L'annulation du trajet a échoué. Veuillez réessayer." };
   }
 
   revalidatePath("/trips");

@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, Users, MessageSquare } from "lucide-react";
+import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BookingStatusBadge } from "@/components/ui/StatusBadge";
 import { cancelBooking, getWhatsAppLink } from "@/app/(main)/bookings/actions";
@@ -53,6 +53,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   );
 
   const isAccepted = booking.status === "accepted";
+  const isTripCancelled = booking.status === "trip_cancelled";
   const canCancel = ["pending", "accepted"].includes(booking.status);
 
   function handleCancel() {
@@ -84,7 +85,9 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
       className={`bg-white border rounded-2xl overflow-hidden transition-all duration-150 ${
         isAccepted
           ? "border-green-200 ring-1 ring-green-100"
-          : "border-stone-200"
+          : isTripCancelled
+            ? "border-amber-200 ring-1 ring-amber-100"
+            : "border-stone-200"
       }`}
     >
       <div className="p-5">
@@ -139,6 +142,24 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
             <MessageSquare className="w-3 h-3 shrink-0 mt-0.5" aria-hidden="true" />
             {booking.passenger_message}
           </p>
+        )}
+
+        {/* Trip cancelled by driver — prominent alert */}
+        {isTripCancelled && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex items-start gap-2.5">
+            <AlertTriangle
+              className="w-4 h-4 text-amber-600 shrink-0 mt-0.5"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="text-xs font-semibold text-amber-800">
+                Votre chauffeur a annulé ce trajet.
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Votre réservation a été automatiquement annulée. Vous pouvez chercher un autre trajet.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Accepted — show WhatsApp CTA */}

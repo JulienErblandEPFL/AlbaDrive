@@ -332,6 +332,8 @@ export function CreateTripForm() {
               min="0"
               step="0.50"
               placeholder="ex: 50"
+              autoComplete="off"
+              onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
               helperText={
                 !errors.price_per_seat
                   ? "Laisser vide si gratuit ou à discuter."
@@ -409,10 +411,11 @@ export function CreateTripForm() {
             </Button>
           ) : (
             <Button
-              type="submit"
+              type="button"
               variant="primary"
               className="flex-1"
               isLoading={isPending}
+              onClick={() => handleSubmit(onSubmit)()}
             >
               Publier le trajet
             </Button>

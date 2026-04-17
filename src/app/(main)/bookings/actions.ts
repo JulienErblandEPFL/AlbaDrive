@@ -17,7 +17,7 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   // Verify passenger has a phone number — required for WhatsApp after acceptance
@@ -31,7 +31,7 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
   if (!profile?.phone) {
     return {
       success: false,
-      error: "Please complete your profile with a phone number before requesting a booking.",
+      error: "Veuillez compléter votre profil avec un numéro de téléphone avant de réserver.",
     };
   }
 
@@ -48,16 +48,20 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
     .single();
 
   if (tripError || !trip) {
-    return { success: false, error: "Trip not found." };
+    return { success: false, error: "Trajet introuvable." };
   }
   if (trip.driver_id === user.id) {
-    return { success: false, error: "You cannot book your own trip." };
+    return { success: false, error: "Vous ne pouvez pas réserver votre propre trajet." };
   }
   if (trip.status !== "open") {
-    return { success: false, error: "This trip is no longer accepting bookings." };
+    return { success: false, error: "Ce trajet n'accepte plus de réservations." };
   }
   if (trip.available_seats < parsed.data.seats_requested) {
-    return { success: false, error: `Only ${trip.available_seats} seat(s) available.` };
+    const n = trip.available_seats;
+    return {
+      success: false,
+      error: `Seulement ${n} place${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}.`,
+    };
   }
 
   const { data: booking, error: dbError } = await supabase
@@ -73,10 +77,10 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
 
   if (dbError) {
     if ((dbError as { code?: string }).code === "23505") {
-      return { success: false, error: "You already have an active booking for this trip." };
+      return { success: false, error: "Vous avez déjà une réservation active sur ce trajet." };
     }
     console.error("[requestBooking]", dbError.message);
-    return { success: false, error: "Failed to request booking. Please try again." };
+    return { success: false, error: "La réservation a échoué. Veuillez réessayer." };
   }
 
   revalidatePath("/bookings");
@@ -88,7 +92,7 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   const parsed = acceptBookingSchema.safeParse(rawData);
@@ -111,19 +115,19 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
     .single()) as { data: BookingWithTripData | null; error: Error | null };
 
   if (fetchError || !booking) {
-    return { success: false, error: "Booking not found." };
+    return { success: false, error: "Réservation introuvable." };
   }
 
   const trip = booking.trip;
 
   if (trip.driver_id !== user.id) {
-    return { success: false, error: "Unauthorized." };
+    return { success: false, error: "Action non autorisée." };
   }
   if (booking.status !== "pending") {
-    return { success: false, error: "Only pending bookings can be accepted." };
+    return { success: false, error: "Seules les demandes en attente peuvent être acceptées." };
   }
   if (trip.available_seats < booking.seats_requested) {
-    return { success: false, error: "Not enough seats available." };
+    return { success: false, error: "Pas assez de places disponibles." };
   }
 
   // DB trigger handle_booking_accepted will atomically decrement available_seats,
@@ -137,7 +141,7 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
 
   if (updateError) {
     console.error("[acceptBooking]", updateError.message);
-    return { success: false, error: "Failed to accept booking. Please try again." };
+    return { success: false, error: "Impossible d'accepter la réservation. Veuillez réessayer." };
   }
 
   revalidatePath("/bookings");
@@ -149,7 +153,7 @@ export async function cancelBooking(rawData: unknown): Promise<ActionResult> {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   const parsed = cancelBookingSchema.safeParse(rawData);
@@ -165,13 +169,13 @@ export async function cancelBooking(rawData: unknown): Promise<ActionResult> {
     .single();
 
   if (fetchError || !booking) {
-    return { success: false, error: "Booking not found." };
+    return { success: false, error: "Réservation introuvable." };
   }
   if (booking.passenger_id !== user.id) {
-    return { success: false, error: "Unauthorized." };
+    return { success: false, error: "Action non autorisée." };
   }
   if (!["pending", "accepted"].includes(booking.status)) {
-    return { success: false, error: "This booking cannot be cancelled." };
+    return { success: false, error: "Cette réservation ne peut pas être annulée." };
   }
 
   // If booking was 'accepted', the DB trigger handle_booking_seat_return
@@ -184,7 +188,7 @@ export async function cancelBooking(rawData: unknown): Promise<ActionResult> {
 
   if (updateError) {
     console.error("[cancelBooking]", updateError.message);
-    return { success: false, error: "Failed to cancel booking. Please try again." };
+    return { success: false, error: "L'annulation a échoué. Veuillez réessayer." };
   }
 
   revalidatePath("/bookings");
@@ -203,7 +207,7 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentication required." };
+    return { success: false, error: "Authentification requise." };
   }
 
   const parsed = getWhatsAppLinkSchema.safeParse(rawData);
@@ -226,7 +230,7 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
     .single()) as { data: BookingWithDriver | null; error: Error | null };
 
   if (bookingError || !booking) {
-    return { success: false, error: "Booking not found." };
+    return { success: false, error: "Réservation introuvable." };
   }
 
   const driverId = booking.trip.driver_id;
@@ -234,14 +238,14 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
   const isPassenger = booking.passenger_id === user.id;
 
   if (!isDriver && !isPassenger) {
-    return { success: false, error: "Unauthorized." };
+    return { success: false, error: "Action non autorisée." };
   }
 
   // CRITICAL: double-verify status server-side before exposing any phone number
   if (booking.status !== "accepted") {
     return {
       success: false,
-      error: "WhatsApp link is only available for accepted bookings.",
+      error: "Le lien WhatsApp n'est disponible que pour les réservations acceptées.",
     };
   }
 
@@ -256,7 +260,7 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
     .single();
 
   if (otherPartyError || !otherParty?.phone) {
-    return { success: false, error: "Contact information unavailable." };
+    return { success: false, error: "Les coordonnées du contact sont indisponibles." };
   }
 
   // Step 3: Fetch own profile to verify we also have a phone
@@ -268,14 +272,20 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
     .single();
 
   if (!ownProfile?.phone) {
-    return { success: false, error: "Your profile is missing a phone number." };
+    return { success: false, error: "Votre profil ne contient pas de numéro de téléphone." };
   }
 
-  // Build wa.me link for the other party — strip all non-digit chars from E.164 number
+  // Build wa.me link — strip all non-digit chars from E.164 number
   const otherPhone = otherParty.phone.replace(/\D/g, "");
+
+  // French pre-filled messages
   const message = isPassenger
-    ? encodeURIComponent("Salam! Rezervova një vend në udhëtimin tuaj. A mund të komunikojmë?")
-    : encodeURIComponent("Salam! Jam shoferi i udhëtimit. Rezervimi juaj është konfirmuar.");
+    ? encodeURIComponent(
+        `Bonjour, je vous contacte concernant notre trajet sur AlbaDrive. Vous avez accepté ma réservation — pouvons-nous organiser le point de rendez-vous ?`
+      )
+    : encodeURIComponent(
+        `Bonjour, je suis votre conducteur AlbaDrive. Votre réservation est confirmée — parlons de l'organisation du rendez-vous.`
+      );
 
   return {
     success: true,
