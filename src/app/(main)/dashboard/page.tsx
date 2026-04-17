@@ -2,6 +2,7 @@
 // Server Component — fetches all dashboard data in parallel, then delegates
 // interactive rendering to the DashboardTabs Client Component.
 import type { Metadata } from "next";
+import Image from "next/image";
 import { createServerClient } from "@/lib/supabase/server";
 import { DashboardTabs } from "./DashboardTabs";
 import type { DriverTripItem, BookingItem } from "./DriverTripCard";
@@ -161,30 +162,51 @@ export default async function DashboardPage() {
   const firstName = profile?.full_name?.split(" ")[0] ?? "";
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      {/* Greeting + quick CTA */}
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">
-            Bonjour, {firstName} !
-          </h1>
-          <p className="text-stone-500 text-sm mt-0.5">
-            Votre tableau de bord AlbaDrive
-          </p>
-        </div>
-        <Link
-          href="/trips/create"
-          className="shrink-0 flex items-center gap-1.5 h-10 px-4 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors duration-150 whitespace-nowrap"
-        >
-          + Proposer
-        </Link>
+    <div className="relative min-h-dvh">
+      {/* Background photo — blurred coastal village */}
+      <div className="absolute inset-0 overflow-hidden">
+        <Image
+          src="/images/albania_cote.avif"
+          alt=""
+          fill
+          priority
+          className="object-cover blur-[2px] scale-105"
+          aria-hidden="true"
+        />
       </div>
 
-      {/* Tabbed sections */}
-      <DashboardTabs
-        driverTrips={driverTripItems}
-        passengerBookings={passengerBookingItems}
+      {/* Gradient overlay */}
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-slate-900/80 pointer-events-none"
+        aria-hidden="true"
       />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-10">
+        {/* Greeting + quick CTA */}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-white drop-shadow-sm">
+              Bonjour, {firstName} !
+            </h1>
+            <p className="text-white/60 text-sm mt-0.5">
+              Votre tableau de bord AlbaDrive
+            </p>
+          </div>
+          <Link
+            href="/trips/create"
+            className="shrink-0 flex items-center gap-1.5 h-10 px-4 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-600 transition-colors duration-150 whitespace-nowrap shadow-lg"
+          >
+            + Proposer
+          </Link>
+        </div>
+
+        {/* Tabbed sections */}
+        <DashboardTabs
+          driverTrips={driverTripItems}
+          passengerBookings={passengerBookingItems}
+        />
+      </div>
     </div>
   );
 }

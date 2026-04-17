@@ -105,7 +105,7 @@ export default async function TripsPage({
             Le corridor Europe ↔ Balkans
           </p>
           <div className="w-full max-w-2xl">
-            <SearchBar from={from} to={to} date={date} />
+            <SearchBar from={from} to={to} date={date} glass />
           </div>
         </div>
       </div>

@@ -172,7 +172,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
   }
 
   return (
-    <article className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+    <article className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl overflow-hidden shadow-lg">
       {/* Trip header */}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-4">

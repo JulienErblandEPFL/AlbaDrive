@@ -28,15 +28,15 @@ function EmptyState({
   ctaHref: string;
 }) {
   return (
-    <div className="text-center py-16 border border-dashed border-stone-200 rounded-2xl bg-white">
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
-        <Icon className="w-5 h-5 text-stone-400" aria-hidden="true" />
+    <div className="text-center py-16 border border-dashed border-white/20 rounded-2xl bg-white/10 backdrop-blur-md">
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/10 mb-4">
+        <Icon className="w-5 h-5 text-white/60" aria-hidden="true" />
       </div>
-      <p className="text-stone-900 font-semibold mb-1">{title}</p>
-      <p className="text-stone-500 text-sm mb-6">{description}</p>
+      <p className="text-white font-semibold mb-1">{title}</p>
+      <p className="text-white/60 text-sm mb-6">{description}</p>
       <Link
         href={ctaHref}
-        className="inline-flex items-center h-10 px-5 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors"
+        className="inline-flex items-center h-10 px-5 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-600 transition-colors shadow-md"
       >
         {cta}
       </Link>
@@ -62,7 +62,7 @@ export function DashboardTabs({
     <div>
       {/* Tab navigation */}
       <div
-        className="flex gap-1 p-1 bg-stone-100 rounded-xl mb-6"
+        className="flex gap-1 p-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl mb-6"
         role="tablist"
         aria-label="Tableau de bord"
       >
@@ -91,8 +91,8 @@ export function DashboardTabs({
             className={[
               "flex-1 flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-medium transition-colors duration-150 cursor-pointer",
               activeTab === id
-                ? "bg-white text-stone-900 shadow-sm"
-                : "text-stone-500 hover:text-stone-700",
+                ? "bg-white/20 text-white shadow-sm"
+                : "text-white/60 hover:text-white/80",
             ].join(" ")}
           >
             <Icon className="w-4 h-4" aria-hidden="true" />

@@ -160,7 +160,7 @@ export default async function LandingPage() {
 
           {/* Search card */}
           <div className="text-left">
-            <SearchBar />
+            <SearchBar glass />
           </div>
 
           {/* Route examples */}

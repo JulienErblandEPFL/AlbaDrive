@@ -82,12 +82,12 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
 
   return (
     <article
-      className={`bg-white border rounded-2xl overflow-hidden transition-all duration-150 ${
+      className={`bg-white/80 backdrop-blur-md border rounded-2xl overflow-hidden transition-all duration-150 shadow-lg ${
         isAccepted
-          ? "border-green-200 ring-1 ring-green-100"
+          ? "border-green-300/60 ring-1 ring-green-200/40"
           : isTripCancelled
-            ? "border-amber-200 ring-1 ring-amber-100"
-            : "border-stone-200"
+            ? "border-amber-300/60 ring-1 ring-amber-200/40"
+            : "border-white/40"
       }`}
     >
       <div className="p-5">
