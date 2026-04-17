@@ -194,20 +194,34 @@ export default async function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-      <section className="bg-stone-50 py-20 px-6" aria-labelledby="how-it-works-title">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
+      <section className="bg-stone-50 pb-20" aria-labelledby="how-it-works-title">
+        {/* Photo banner — pont albanais */}
+        <div className="relative h-52 sm:h-64 overflow-hidden">
+          <Image
+            src="/images/albania_pont.jpg"
+            alt="Pont albanais symbolisant le lien communautaire"
+            fill
+            className="object-cover object-center"
+          />
+          {/* Overlay dégradé rouge foncé → transparent → rouge foncé */}
+          <div
+            className="absolute inset-0 bg-gradient-to-b from-stone-950/70 via-red-950/50 to-stone-50 pointer-events-none"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
             <h2
               id="how-it-works-title"
-              className="text-2xl sm:text-3xl font-bold text-stone-900 mb-3"
+              className="text-2xl sm:text-3xl font-bold text-white mb-2 drop-shadow-md"
             >
               Comment ça marche ?
             </h2>
-            <p className="text-stone-500 text-base max-w-md mx-auto">
+            <p className="text-stone-200 text-base max-w-md drop-shadow">
               Trois étapes simples pour voyager avec la communauté.
             </p>
           </div>
+        </div>
 
+        <div className="max-w-4xl mx-auto px-6 pt-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {HOW_IT_WORKS.map(({ step, icon: Icon, title, description }) => (
               <div
@@ -235,6 +249,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── DRIVER CTA ────────────────────────────────────────── */}
+
       <section className="bg-red-800 py-16 px-6" aria-labelledby="driver-cta-title">
         <div className="max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-700 mb-6">

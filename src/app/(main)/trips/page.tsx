@@ -2,6 +2,7 @@
 // Public search page — accessible without authentication.
 // searchParams drive filterable, shareable URLs.
 import type { Metadata } from "next";
+import Image from "next/image";
 import { createServerClient } from "@/lib/supabase/server";
 import { TripCard } from "./components/TripCard";
 import { SearchBar } from "./components/SearchBar";
@@ -81,22 +82,35 @@ export default async function TripsPage({
   const isFiltered = !!(from || to || date);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-stone-900">
-          Trajets disponibles
-        </h1>
-        <p className="text-stone-500 text-sm mt-1">
-          Le corridor Europe ↔ Balkans
-        </p>
+    <div>
+      {/* ── Photo banner with SearchBar ─────────────────────── */}
+      <div className="relative h-56 sm:h-72 overflow-hidden">
+        <Image
+          src="/images/pristina.webp"
+          alt="Vue de Pristina, Kosovo"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+        {/* Dark gradient overlay */}
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-stone-100 pointer-events-none"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 pb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 drop-shadow-md text-center">
+            Trouver un trajet
+          </h1>
+          <p className="text-stone-300 text-sm mb-5 drop-shadow text-center">
+            Le corridor Europe ↔ Balkans
+          </p>
+          <div className="w-full max-w-2xl">
+            <SearchBar from={from} to={to} date={date} />
+          </div>
+        </div>
       </div>
 
-      {/* Search bar */}
-      <div className="mb-8">
-        <SearchBar from={from} to={to} date={date} />
-      </div>
-
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       {/* Results summary */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <p className="text-sm text-stone-500">
@@ -178,6 +192,7 @@ export default async function TripsPage({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
