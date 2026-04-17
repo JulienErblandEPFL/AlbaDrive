@@ -34,7 +34,7 @@ export default async function MainLayout({
         email={user?.email ?? ""}
         isAuthenticated={!!user}
       />
-      <main className="flex-1 w-full">{children}</main>
+      <main className="flex-1 w-full pb-16 md:pb-0">{children}</main>
     </div>
   );
 }
