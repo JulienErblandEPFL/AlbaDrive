@@ -1,8 +1,8 @@
 // src/lib/test-utils/supabase-mock.ts
 import { vi } from "vitest";
 
-export const MOCK_USER = { id: "user-driver-123", email: "driver@test.com" };
-export const MOCK_PASSENGER = { id: "user-passenger-456", email: "passenger@test.com" };
+export const MOCK_USER = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", email: "driver@test.com" };
+export const MOCK_PASSENGER = { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", email: "passenger@test.com" };
 
 /**
  * Builds a Supabase client mock where `single()` is the terminal call.
