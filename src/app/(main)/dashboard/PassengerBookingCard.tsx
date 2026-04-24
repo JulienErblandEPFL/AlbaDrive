@@ -7,7 +7,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { StarRating } from "@/components/ui/StarRating";
 import { BookingStatusBadge } from "@/components/ui/StatusBadge";
+import { ReviewModal } from "@/app/(main)/reviews/ReviewModal";
 import { cancelBooking, getWhatsAppLink } from "@/app/(main)/bookings/actions";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 
@@ -48,6 +50,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   const [isCancelling, startCancel] = useTransition();
   const [isLoadingWA, startLoadingWA] = useTransition();
   const [waError, setWaError] = useState<string | null>(null);
+  const [isReviewOpen, setReviewOpen] = useState(false);
 
   const formattedDate = format(
     new Date(booking.trip.departure_at),
@@ -129,7 +132,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
         </div>
 
         {/* Driver */}
-        <div className="flex items-center gap-1.5 text-xs text-stone-400 mb-3">
+        <div className="flex items-center gap-1.5 text-xs text-stone-400 mb-3 flex-wrap">
           <div className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center shrink-0">
             <span className="text-stone-600 font-bold text-[10px]">
               {booking.driver_name[0]?.toUpperCase() ?? "?"}
@@ -137,7 +140,29 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
           </div>
           Conducteur :{" "}
           <span className="font-medium text-stone-600">{booking.driver_name}</span>
+          {isAccepted && booking.driver_review_summary && booking.driver_review_summary.count >= 3 && (
+            <StarRating
+              mode="display"
+              value={booking.driver_review_summary.avg}
+              count={booking.driver_review_summary.count}
+              size="sm"
+              className="ml-1"
+            />
+          )}
         </div>
+
+        {/* Recent driver reviews — only when booking is accepted */}
+        {isAccepted && booking.driver_review_summary && booking.driver_review_summary.recent.length > 0 && (
+          <ul className="mb-3 flex flex-col gap-1 text-xs text-stone-600 bg-stone-50 rounded-lg px-3 py-2">
+            {booking.driver_review_summary.recent.map((r) => (
+              <li key={r.id} className="flex items-start gap-1">
+                <StarRating mode="display" value={r.rating} size="sm" />
+                <span className="italic">«&nbsp;{r.comment}&nbsp;»</span>
+                <span className="text-stone-400"> — {r.reviewerDisplayName}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* My message */}
         {booking.passenger_message && (
@@ -203,7 +228,32 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
             Annuler ma réservation
           </Button>
         )}
+
+        {/* Review CTA — completed accepted bookings */}
+        {booking.trip.status === "completed" && booking.status === "accepted" && (
+          <div className="mt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setReviewOpen(true)}
+              className="w-full"
+            >
+              Laisser un avis sur le conducteur
+            </Button>
+          </div>
+        )}
       </div>
+
+      <ReviewModal
+        tripId={booking.trip.id}
+        revieweeId={booking.trip.driver_id}
+        revieweeName={booking.driver_name}
+        revieweeLabel="votre conducteur"
+        isOpen={isReviewOpen}
+        onClose={() => setReviewOpen(false)}
+        onSubmitted={() => router.refresh()}
+      />
     </article>
   );
 }
