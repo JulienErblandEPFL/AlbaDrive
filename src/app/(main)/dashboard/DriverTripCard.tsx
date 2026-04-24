@@ -1,7 +1,7 @@
 // src/app/(main)/dashboard/DriverTripCard.tsx
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,7 +15,9 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { StarRating } from "@/components/ui/StarRating";
 import { TripStatusBadge, BookingStatusBadge } from "@/components/ui/StatusBadge";
+import { ReviewModal } from "@/app/(main)/reviews/ReviewModal";
 import { acceptBooking, cancelBooking } from "@/app/(main)/bookings/actions";
 import { cancelTrip } from "@/app/(main)/trips/actions";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
@@ -103,12 +105,35 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
               {booking.seats_requested !== 1 ? "s" : ""}
             </span>
             <BookingStatusBadge status={booking.status} />
+            {booking.passenger_review_summary && booking.passenger_review_summary.count >= 3 ? (
+              <StarRating
+                mode="display"
+                value={booking.passenger_review_summary.avg}
+                count={booking.passenger_review_summary.count}
+                size="sm"
+              />
+            ) : booking.passenger_review_summary ? (
+              <span className="text-[10px] font-medium text-stone-500 bg-stone-100 rounded-full px-2 py-0.5">
+                Nouveau passager
+              </span>
+            ) : null}
           </div>
           {booking.passenger_message && (
             <p className="text-xs text-stone-500 mt-1 flex items-start gap-1">
               <MessageSquare className="w-3 h-3 shrink-0 mt-0.5" aria-hidden="true" />
               {booking.passenger_message}
             </p>
+          )}
+          {booking.passenger_review_summary && booking.passenger_review_summary.recent.length > 0 && (
+            <ul className="mt-2 flex flex-col gap-1 text-xs text-stone-600">
+              {booking.passenger_review_summary.recent.map((r) => (
+                <li key={r.id} className="flex items-start gap-1">
+                  <StarRating mode="display" value={r.rating} size="sm" />
+                  <span className="italic">«&nbsp;{r.comment}&nbsp;»</span>
+                  <span className="text-stone-400"> — {r.reviewerDisplayName}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
@@ -146,6 +171,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
 export function DriverTripCard({ trip }: DriverTripCardProps) {
   const router = useRouter();
   const [isCancelling, startCancel] = useTransition();
+  const [reviewTarget, setReviewTarget] = useState<BookingItem | null>(null);
 
   const formattedDate = format(
     new Date(trip.departure_at),
@@ -262,6 +288,42 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
             Annuler ce trajet
           </Button>
         </div>
+      )}
+
+      {/* Review CTAs for completed trips */}
+      {trip.status === "completed" &&
+        trip.bookings.some((b) => b.status === "accepted") && (
+          <div className="border-t border-stone-100 px-5 py-3 flex flex-col gap-2">
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
+              Évaluer les passagers
+            </p>
+            {trip.bookings
+              .filter((b) => b.status === "accepted")
+              .map((b) => (
+                <Button
+                  key={b.id}
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setReviewTarget(b)}
+                  className="w-full justify-start"
+                >
+                  Laisser un avis sur {b.passenger_name}
+                </Button>
+              ))}
+          </div>
+        )}
+
+      {reviewTarget && (
+        <ReviewModal
+          tripId={trip.id}
+          revieweeId={reviewTarget.passenger_id}
+          revieweeName={reviewTarget.passenger_name}
+          revieweeLabel="votre passager"
+          isOpen={true}
+          onClose={() => setReviewTarget(null)}
+          onSubmitted={() => router.refresh()}
+        />
       )}
     </article>
   );
