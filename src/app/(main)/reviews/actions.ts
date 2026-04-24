@@ -3,9 +3,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { submitReviewSchema } from "@/lib/validations/review.schema";
+import { submitReviewSchema, getReviewSummarySchema } from "@/lib/validations/review.schema";
+import { pseudonymizeName } from "@/lib/reviews/display-name";
 import type { ActionResult } from "@/types/actions";
-import type { ReviewRow } from "@/types/database.types";
+import type { ReviewRow, ReviewSummary, ReviewSummaryRaw } from "@/types/database.types";
 
 type CanReviewCode =
   | "OK"
@@ -90,4 +91,76 @@ export async function submitReview(rawData: unknown): Promise<ActionResult<Revie
 
   revalidatePath("/dashboard");
   return { success: true, data: review as ReviewRow };
+}
+
+function adaptSummary(raw: NonNullable<ReviewSummaryRaw>): ReviewSummary {
+  return {
+    avg: Number(raw.avg),
+    count: Number(raw.count),
+    recent: raw.recent.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      reviewerDisplayName: pseudonymizeName(r.reviewer_full_name),
+      createdAt: r.created_at,
+    })),
+  };
+}
+
+export async function getPassengerReviewSummary(rawData: unknown): Promise<ActionResult<ReviewSummary>> {
+  const supabase = await createServerClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "Authentification requise." };
+  }
+
+  const parsed = getReviewSummarySchema.safeParse(rawData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { data, error } = await supabase.rpc("get_passenger_review_summary", {
+    p_passenger_id: parsed.data.user_id,
+  });
+
+  if (error) {
+    console.error("[getPassengerReviewSummary]", error.message);
+    return { success: false, error: "Chargement des avis impossible." };
+  }
+
+  if (data === null) {
+    return { success: false, error: "Action non autorisée." };
+  }
+
+  return { success: true, data: adaptSummary(data as NonNullable<ReviewSummaryRaw>) };
+}
+
+export async function getDriverReviewDetails(rawData: unknown): Promise<ActionResult<ReviewSummary>> {
+  const supabase = await createServerClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "Authentification requise." };
+  }
+
+  const parsed = getReviewSummarySchema.safeParse(rawData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { data, error } = await supabase.rpc("get_driver_review_details", {
+    p_driver_id: parsed.data.user_id,
+  });
+
+  if (error) {
+    console.error("[getDriverReviewDetails]", error.message);
+    return { success: false, error: "Chargement des avis impossible." };
+  }
+
+  if (data === null) {
+    return { success: false, error: "Action non autorisée." };
+  }
+
+  return { success: true, data: adaptSummary(data as NonNullable<ReviewSummaryRaw>) };
 }

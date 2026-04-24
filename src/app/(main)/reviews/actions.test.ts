@@ -187,3 +187,130 @@ describe("submitReview — rejections", () => {
     expect((result as { error: string }).error).toMatch(/déjà laissé un avis/);
   });
 });
+
+import { getPassengerReviewSummary, getDriverReviewDetails } from "./actions";
+import type { ReviewSummary } from "@/types/database.types";
+
+const ANOTHER_PASSENGER = { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", email: "p2@test.com" };
+
+describe("getPassengerReviewSummary", () => {
+  let mockRpc: ReturnType<typeof vi.fn>;
+
+  function setupMock(user: { id: string; email: string } | null) {
+    vi.clearAllMocks();
+    const built = buildSupabaseMock({ user });
+    mockRpc = vi.fn();
+    const mockClient = { ...built.mockClient, rpc: mockRpc };
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createServerClient>>);
+  }
+
+  it("returns error when unauthenticated", async () => {
+    setupMock(null);
+
+    const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentification requise.");
+  });
+
+  it("returns error when RPC returns null (caller has no booking with this passenger)", async () => {
+    setupMock(MOCK_USER);
+    mockRpc.mockResolvedValueOnce({ data: null, error: null });
+
+    const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toMatch(/non autoris/i);
+  });
+
+  it("returns the summary with pseudonymised reviewer names", async () => {
+    setupMock(MOCK_USER);
+    const now = new Date().toISOString();
+    mockRpc.mockResolvedValueOnce({
+      data: {
+        avg: 4.5,
+        count: 2,
+        recent: [
+          { id: "r1", rating: 5, comment: "Super", reviewer_full_name: "Jean Dupont", created_at: now },
+          { id: "r2", rating: 4, comment: "Bien", reviewer_full_name: "Marie Kelmendi", created_at: now },
+        ],
+      },
+      error: null,
+    });
+
+    const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: { avg: number; count: number; recent: Array<{ reviewerDisplayName: string }> } }).data!;
+    expect(data.avg).toBe(4.5);
+    expect(data.count).toBe(2);
+    expect(data.recent).toHaveLength(2);
+    expect(data.recent[0].reviewerDisplayName).toBe("Jean D.");
+    expect(data.recent[1].reviewerDisplayName).toBe("Marie K.");
+  });
+
+  it("returns empty-but-authorised when RPC returns zero count", async () => {
+    setupMock(MOCK_USER);
+    mockRpc.mockResolvedValueOnce({
+      data: { avg: 0, count: 0, recent: [] },
+      error: null,
+    });
+
+    const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: { count: number } }).data!;
+    expect(data.count).toBe(0);
+  });
+});
+
+describe("getDriverReviewDetails", () => {
+  let mockRpc: ReturnType<typeof vi.fn>;
+
+  function setupMock(user: { id: string; email: string } | null) {
+    vi.clearAllMocks();
+    const built = buildSupabaseMock({ user });
+    mockRpc = vi.fn();
+    const mockClient = { ...built.mockClient, rpc: mockRpc };
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as unknown as Awaited<ReturnType<typeof createServerClient>>);
+  }
+
+  it("returns error when unauthenticated", async () => {
+    setupMock(null);
+    const result = await getDriverReviewDetails({ user_id: MOCK_USER.id });
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toBe("Authentification requise.");
+  });
+
+  it("returns error when RPC returns null (no accepted booking relationship)", async () => {
+    setupMock(MOCK_PASSENGER);
+    mockRpc.mockResolvedValueOnce({ data: null, error: null });
+
+    const result = await getDriverReviewDetails({ user_id: MOCK_USER.id });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: string }).error).toMatch(/non autoris/i);
+  });
+
+  it("returns pseudonymised recent comments about the driver", async () => {
+    setupMock(MOCK_PASSENGER);
+    const now = new Date().toISOString();
+    mockRpc.mockResolvedValueOnce({
+      data: {
+        avg: 4.8,
+        count: 10,
+        recent: [
+          { id: "r1", rating: 5, comment: "Ponctuel", reviewer_full_name: "Artan Doci", created_at: now },
+        ],
+      },
+      error: null,
+    });
+
+    const result = await getDriverReviewDetails({ user_id: MOCK_USER.id });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: ReviewSummary }).data!;
+    expect(data.recent[0].reviewerDisplayName).toBe("Artan D.");
+    expect(data.recent[0].rating).toBe(5);
+  });
+});
