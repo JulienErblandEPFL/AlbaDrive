@@ -9,6 +9,7 @@ import { fr } from "date-fns/locale";
 import { ArrowLeft, Calendar, Users, Euro, Car, MessageSquare, MapPin } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { BookingSection } from "./BookingSection";
+import { StarRating } from "@/components/ui/StarRating";
 import type { LocationJsonb, TripStatus } from "@/types/database.types";
 
 export async function generateMetadata({
@@ -61,7 +62,7 @@ export default async function TripDetailPage({
 
   const { data: driver } = await supabase
     .from("profiles_public")
-    .select("full_name")
+    .select("full_name, driver_rating_avg, driver_rating_count")
     .eq("id", rawTrip.driver_id)
     .single();
 
@@ -172,6 +173,19 @@ export default async function TripDetailPage({
             <div>
               <p className="text-xs text-stone-400">Conducteur</p>
               <p className="text-sm font-semibold text-stone-900">{driverName}</p>
+              {driver?.driver_rating_count != null && Number(driver.driver_rating_count) >= 3 ? (
+                <StarRating
+                  mode="display"
+                  value={Number(driver.driver_rating_avg)}
+                  count={Number(driver.driver_rating_count)}
+                  size="sm"
+                  className="mt-1"
+                />
+              ) : (
+                <span className="mt-1 text-xs font-medium text-red-800 bg-red-50 rounded-full px-2 py-0.5 border border-red-100 inline-block">
+                  Nouveau conducteur
+                </span>
+              )}
             </div>
           </div>
         </div>
