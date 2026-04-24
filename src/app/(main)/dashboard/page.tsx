@@ -7,7 +7,8 @@ import { createServerClient } from "@/lib/supabase/server";
 import { DashboardTabs } from "./DashboardTabs";
 import type { DriverTripItem, BookingItem } from "./DriverTripCard";
 import type { PassengerBookingItem } from "./PassengerBookingCard";
-import type { LocationJsonb, BookingStatus, TripStatus } from "@/types/database.types";
+import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
+import { getPassengerReviewSummary, getDriverReviewDetails } from "@/app/(main)/reviews/actions";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -106,6 +107,46 @@ export default async function DashboardPage() {
     (rawPublicProfiles ?? []).map((p) => [p.id, p.full_name])
   );
 
+  // ── Review summaries (parallel, gated per-caller by the RPCs) ────────────
+  // Drivers see summaries of pending/accepted passengers on their trips.
+  const passengerIdsForReview = [
+    ...new Set(
+      tripBookings
+        .filter((b) => b.status === "pending" || b.status === "accepted")
+        .map((b) => b.passenger_id)
+    ),
+  ];
+
+  // Passengers see details of the driver on each of their accepted bookings.
+  const driverIdsForReview = [
+    ...new Set(
+      myBookings
+        .filter((b) => b.status === "accepted")
+        .map((b) => bookingTrips.find((t) => t.id === b.trip_id)?.driver_id)
+        .filter((id): id is string => typeof id === "string" && id !== userId)
+    ),
+  ];
+
+  const [passengerReviewResults, driverReviewResults] = await Promise.all([
+    Promise.all(
+      passengerIdsForReview.map((id) =>
+        getPassengerReviewSummary({ user_id: id }).then(
+          (r) => [id, r.success ? r.data! : null] as const
+        )
+      )
+    ),
+    Promise.all(
+      driverIdsForReview.map((id) =>
+        getDriverReviewDetails({ user_id: id }).then(
+          (r) => [id, r.success ? r.data! : null] as const
+        )
+      )
+    ),
+  ]);
+
+  const passengerReviewsById: Record<string, ReviewSummary | null> = Object.fromEntries(passengerReviewResults);
+  const driverReviewsById: Record<string, ReviewSummary | null> = Object.fromEntries(driverReviewResults);
+
   // ── Assemble DriverTripItem[] ─────────────────────────────────────────────
   const driverTripItems: DriverTripItem[] = driverTrips.map((trip) => {
     const bookings: BookingItem[] = tripBookings
@@ -118,6 +159,7 @@ export default async function DashboardPage() {
         status: b.status as BookingStatus,
         passenger_message: b.passenger_message,
         created_at: b.created_at,
+        passenger_review_summary: passengerReviewsById[b.passenger_id] ?? null,
       }));
 
     return {
@@ -155,6 +197,7 @@ export default async function DashboardPage() {
           driver_id: trip.driver_id,
         },
         driver_name: nameById[trip.driver_id] ?? "Conducteur",
+        driver_review_summary: driverReviewsById[trip.driver_id] ?? null,
       } satisfies PassengerBookingItem;
     })
     .filter((b): b is PassengerBookingItem => b !== null);

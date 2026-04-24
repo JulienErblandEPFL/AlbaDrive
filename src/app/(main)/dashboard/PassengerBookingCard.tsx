@@ -9,7 +9,7 @@ import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BookingStatusBadge } from "@/components/ui/StatusBadge";
 import { cancelBooking, getWhatsAppLink } from "@/app/(main)/bookings/actions";
-import type { LocationJsonb, BookingStatus, TripStatus } from "@/types/database.types";
+import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 
 // WhatsApp SVG icon
 const WhatsAppIcon = () => (
@@ -34,6 +34,9 @@ export interface PassengerBookingItem {
     driver_id: string;
   };
   driver_name: string;
+  /** Populated by the dashboard RSC only when this booking is accepted;
+      null otherwise. */
+  driver_review_summary: ReviewSummary | null;
 }
 
 interface PassengerBookingCardProps {

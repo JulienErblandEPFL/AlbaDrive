@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { TripStatusBadge, BookingStatusBadge } from "@/components/ui/StatusBadge";
 import { acceptBooking, cancelBooking } from "@/app/(main)/bookings/actions";
 import { cancelTrip } from "@/app/(main)/trips/actions";
-import type { LocationJsonb, BookingStatus, TripStatus } from "@/types/database.types";
+import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 
 export interface BookingItem {
   id: string;
@@ -28,6 +28,9 @@ export interface BookingItem {
   status: BookingStatus;
   passenger_message: string | null;
   created_at: string;
+  /** Populated by the dashboard RSC; null when the caller isn't authorised
+      to see this passenger's aggregate (should not happen in practice). */
+  passenger_review_summary: ReviewSummary | null;
 }
 
 export interface DriverTripItem {
