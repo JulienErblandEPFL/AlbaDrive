@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale";
 import { MapPin, Calendar, Users, Euro, MessageSquare, ChevronDown, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { StarRating } from "@/components/ui/StarRating";
 import { requestBooking } from "@/app/(main)/bookings/actions";
 import type { LocationJsonb } from "@/types/database.types";
 
@@ -25,10 +26,12 @@ interface TripCardProps {
     notes: string | null;
   };
   driverName: string;
+  driverRatingAvg: number;
+  driverRatingCount: number;
   currentUserId: string;
 }
 
-export function TripCard({ trip, driverName, currentUserId }: TripCardProps) {
+export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount, currentUserId }: TripCardProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [seats, setSeats] = useState(1);
   const [message, setMessage] = useState("");
@@ -100,17 +103,26 @@ export function TripCard({ trip, driverName, currentUserId }: TripCardProps) {
           )}
         </div>
 
-        {/* Driver name */}
-        <div className="flex items-center gap-1.5 mt-3 text-xs text-stone-400">
-          <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-            <span className="text-red-800 font-bold text-[10px]">
-              {driverName[0]?.toUpperCase() ?? "?"}
+        {/* Driver name + aggregate rating */}
+        <div className="flex items-center gap-2 mt-3 text-xs text-stone-400 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <span className="text-red-800 font-bold text-[10px]">
+                {driverName[0]?.toUpperCase() ?? "?"}
+              </span>
+            </div>
+            <span>
+              Conducteur :{" "}
+              <span className="font-medium text-stone-600">{driverName}</span>
             </span>
           </div>
-          <span>
-            Conducteur :{" "}
-            <span className="font-medium text-stone-600">{driverName}</span>
-          </span>
+          {driverRatingCount >= 3 ? (
+            <StarRating mode="display" value={driverRatingAvg} count={driverRatingCount} size="sm" />
+          ) : (
+            <span className="text-[10px] font-medium text-red-800 bg-red-50 rounded-full px-2 py-0.5 border border-red-100">
+              Nouveau conducteur
+            </span>
+          )}
         </div>
 
         {/* Notes */}

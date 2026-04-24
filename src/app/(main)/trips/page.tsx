@@ -65,18 +65,25 @@ export default async function TripsPage({
   // Exclude the driver's own trips from browse view
   const browsableTrips = trips.filter((t) => t.driver_id !== user?.id);
 
-  // Batch-fetch driver names
+  // Batch-fetch driver names + aggregate ratings (from profiles_public view)
   const driverIds = [...new Set(browsableTrips.map((t) => t.driver_id))];
   const { data: driverProfiles } =
     driverIds.length > 0
       ? await supabase
           .from("profiles_public")
-          .select("id, full_name")
+          .select("id, full_name, driver_rating_avg, driver_rating_count")
           .in("id", driverIds)
       : { data: [] };
 
-  const driverNameById = Object.fromEntries(
-    (driverProfiles ?? []).map((p) => [p.id, p.full_name])
+  const driverById = Object.fromEntries(
+    (driverProfiles ?? []).map((p) => [
+      p.id,
+      {
+        name: p.full_name ?? "Conducteur",
+        rating_avg: p.driver_rating_avg != null ? Number(p.driver_rating_avg) : 0,
+        rating_count: p.driver_rating_count != null ? Number(p.driver_rating_count) : 0,
+      },
+    ])
   );
 
   const isFiltered = !!(from || to || date);
@@ -186,7 +193,9 @@ export default async function TripsPage({
                   ? Number(trip.price_per_seat)
                   : null,
               }}
-              driverName={driverNameById[trip.driver_id] ?? "Conducteur"}
+              driverName={driverById[trip.driver_id]?.name ?? "Conducteur"}
+              driverRatingAvg={driverById[trip.driver_id]?.rating_avg ?? 0}
+              driverRatingCount={driverById[trip.driver_id]?.rating_count ?? 0}
               currentUserId={user?.id ?? ""}
             />
           ))}
