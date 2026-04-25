@@ -9,7 +9,7 @@ import { z } from "zod";
 import { ArrowRight, ArrowLeft, MapPin, Calendar, Car, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { createTrip } from "@/app/(main)/trips/actions";
+import { createTrip } from "@/app/[locale]/(main)/trips/actions";
 import { citiesByRegion, findCity } from "@/lib/constants/cities";
 
 // ── Client-side form schema (city labels, not LocationJsonb) ────────────────

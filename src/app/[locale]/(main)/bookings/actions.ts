@@ -84,7 +84,7 @@ export async function requestBooking(rawData: unknown): Promise<ActionResult<Boo
   }
 
   revalidatePath("/bookings");
-  return { success: true, data: booking };
+  return { success: true, data: booking as BookingRow };
 }
 
 export async function acceptBooking(rawData: unknown): Promise<ActionResult<BookingRow>> {
@@ -145,7 +145,7 @@ export async function acceptBooking(rawData: unknown): Promise<ActionResult<Book
   }
 
   revalidatePath("/bookings");
-  return { success: true, data: updated };
+  return { success: true, data: updated as BookingRow };
 }
 
 export async function cancelBooking(rawData: unknown): Promise<ActionResult> {

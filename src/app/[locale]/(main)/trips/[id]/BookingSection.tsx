@@ -4,7 +4,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { requestBooking } from "@/app/(main)/bookings/actions";
+import { requestBooking } from "@/app/[locale]/(main)/bookings/actions";
 import { Button } from "@/components/ui/Button";
 import { LogIn, CheckCircle, AlertCircle } from "lucide-react";
 

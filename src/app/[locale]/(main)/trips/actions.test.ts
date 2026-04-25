@@ -44,7 +44,7 @@ describe("createTrip", () => {
     const result = await createTrip(VALID_TRIP_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("returns error when departure_at is in the past", async () => {
@@ -92,7 +92,7 @@ describe("createTrip", () => {
     const result = await createTrip(VALID_TRIP_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Failed to create trip. Please try again.");
+    expect((result as { error: string }).error).toBe("La création du trajet a échoué. Veuillez réessayer.");
   });
 });
 
@@ -113,7 +113,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "trip-abc-123" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("returns error when trip_id is not a valid UUID", async () => {
@@ -128,7 +128,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Trip not found.");
+    expect((result as { error: string }).error).toBe("Trajet introuvable.");
   });
 
   it("returns Unauthorized when user is not the driver", async () => {
@@ -140,7 +140,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Unauthorized.");
+    expect((result as { error: string }).error).toBe("Action non autorisée.");
   });
 
   it("returns error when trip is already cancelled", async () => {
@@ -152,7 +152,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("cancelled");
+    expect((result as { error: string }).error).toContain("annulé");
   });
 
   it("successfully cancels an open trip", async () => {

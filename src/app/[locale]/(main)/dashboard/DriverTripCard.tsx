@@ -17,9 +17,9 @@ import {
 import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
 import { TripStatusBadge, BookingStatusBadge } from "@/components/ui/StatusBadge";
-import { ReviewModal } from "@/app/(main)/reviews/ReviewModal";
-import { acceptBooking, cancelBooking } from "@/app/(main)/bookings/actions";
-import { cancelTrip } from "@/app/(main)/trips/actions";
+import { ReviewModal } from "@/app/[locale]/(main)/reviews/ReviewModal";
+import { acceptBooking, cancelBooking } from "@/app/[locale]/(main)/bookings/actions";
+import { cancelTrip } from "@/app/[locale]/(main)/trips/actions";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 
 export interface BookingItem {

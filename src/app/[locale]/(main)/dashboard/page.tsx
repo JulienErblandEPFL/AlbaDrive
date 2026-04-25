@@ -8,7 +8,7 @@ import { DashboardTabs } from "./DashboardTabs";
 import type { DriverTripItem, BookingItem } from "./DriverTripCard";
 import type { PassengerBookingItem } from "./PassengerBookingCard";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
-import { getPassengerReviewSummary, getDriverReviewDetails } from "@/app/(main)/reviews/actions";
+import { getPassengerReviewSummary, getDriverReviewDetails } from "@/app/[locale]/(main)/reviews/actions";
 import Link from "next/link";
 
 export const metadata: Metadata = {

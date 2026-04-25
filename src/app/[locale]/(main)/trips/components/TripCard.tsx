@@ -9,7 +9,7 @@ import { MapPin, Calendar, Users, Euro, MessageSquare, ChevronDown, ArrowRight }
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
-import { requestBooking } from "@/app/(main)/bookings/actions";
+import { requestBooking } from "@/app/[locale]/(main)/bookings/actions";
 import type { LocationJsonb } from "@/types/database.types";
 
 interface TripCardProps {

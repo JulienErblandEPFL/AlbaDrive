@@ -9,8 +9,8 @@ import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
 import { BookingStatusBadge } from "@/components/ui/StatusBadge";
-import { ReviewModal } from "@/app/(main)/reviews/ReviewModal";
-import { cancelBooking, getWhatsAppLink } from "@/app/(main)/bookings/actions";
+import { ReviewModal } from "@/app/[locale]/(main)/reviews/ReviewModal";
+import { cancelBooking, getWhatsAppLink } from "@/app/[locale]/(main)/bookings/actions";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 
 // WhatsApp SVG icon

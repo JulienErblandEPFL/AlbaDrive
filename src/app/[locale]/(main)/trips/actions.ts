@@ -36,7 +36,7 @@ export async function createTrip(rawData: unknown): Promise<ActionResult<TripRow
   }
 
   revalidatePath("/trips");
-  return { success: true, data: trip };
+  return { success: true, data: trip as TripRow };
 }
 
 export async function cancelTrip(rawData: unknown): Promise<ActionResult> {

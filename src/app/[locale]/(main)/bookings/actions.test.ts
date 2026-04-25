@@ -41,7 +41,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("returns error when passenger has no phone in profile", async () => {
@@ -50,7 +50,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("phone number");
+    expect((result as { error: string }).error).toContain("téléphone");
   });
 
   it("returns error when trip does not exist", async () => {
@@ -61,7 +61,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Trip not found.");
+    expect((result as { error: string }).error).toBe("Trajet introuvable.");
   });
 
   it("returns error when passenger tries to book their own trip", async () => {
@@ -75,7 +75,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("You cannot book your own trip.");
+    expect((result as { error: string }).error).toBe("Vous ne pouvez pas réserver votre propre trajet.");
   });
 
   it("returns error when trip is full", async () => {
@@ -89,7 +89,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("no longer accepting");
+    expect((result as { error: string }).error).toContain("n'accepte plus");
   });
 
   it("returns error when not enough seats for seats_requested", async () => {
@@ -103,7 +103,7 @@ describe("requestBooking", () => {
     const result = await requestBooking({ ...VALID_REQUEST_INPUT, seats_requested: 2 });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("seat(s) available");
+    expect((result as { error: string }).error).toContain("place");
   });
 
   it("creates booking and returns it on valid input", async () => {
@@ -136,7 +136,7 @@ describe("requestBooking", () => {
     const result = await requestBooking(VALID_REQUEST_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("already have an active booking");
+    expect((result as { error: string }).error).toContain("déjà une réservation active");
   });
 });
 
@@ -158,7 +158,7 @@ describe("acceptBooking", () => {
     const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("returns error when booking is not found", async () => {
@@ -167,7 +167,7 @@ describe("acceptBooking", () => {
     const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Booking not found.");
+    expect((result as { error: string }).error).toBe("Réservation introuvable.");
   });
 
   it("returns Unauthorized when caller is not the trip driver", async () => {
@@ -184,7 +184,7 @@ describe("acceptBooking", () => {
     const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Unauthorized.");
+    expect((result as { error: string }).error).toBe("Action non autorisée.");
   });
 
   it("returns error when booking is not in pending status", async () => {
@@ -201,7 +201,7 @@ describe("acceptBooking", () => {
     const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Only pending bookings can be accepted.");
+    expect((result as { error: string }).error).toBe("Seules les demandes en attente peuvent être acceptées.");
   });
 
   it("returns error when not enough seats", async () => {
@@ -218,7 +218,7 @@ describe("acceptBooking", () => {
     const result = await acceptBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Not enough seats available.");
+    expect((result as { error: string }).error).toBe("Pas assez de places disponibles.");
   });
 
   it("accepts a valid pending booking", async () => {
@@ -266,7 +266,7 @@ describe("cancelBooking", () => {
     const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("returns error when booking is not found", async () => {
@@ -275,7 +275,7 @@ describe("cancelBooking", () => {
     const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Booking not found.");
+    expect((result as { error: string }).error).toBe("Réservation introuvable.");
   });
 
   it("returns Unauthorized when caller is not the passenger", async () => {
@@ -287,7 +287,7 @@ describe("cancelBooking", () => {
     const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Unauthorized.");
+    expect((result as { error: string }).error).toBe("Action non autorisée.");
   });
 
   it("returns error when booking is in a non-cancellable status", async () => {
@@ -299,7 +299,7 @@ describe("cancelBooking", () => {
     const result = await cancelBooking({ booking_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("This booking cannot be cancelled.");
+    expect((result as { error: string }).error).toBe("Cette réservation ne peut pas être annulée.");
   });
 
   it("cancels a pending booking", async () => {
@@ -342,7 +342,7 @@ describe("getWhatsAppLink — security", () => {
     const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentication required.");
+    expect((result as { error: string }).error).toBe("Authentification requise.");
   });
 
   it("🔒 returns error when booking status is 'pending' — not yet accepted", async () => {
@@ -359,7 +359,7 @@ describe("getWhatsAppLink — security", () => {
 
     expect(result.success).toBe(false);
     expect((result as { error: string }).error).toBe(
-      "WhatsApp link is only available for accepted bookings."
+      "Le lien WhatsApp n'est disponible que pour les réservations acceptées."
     );
   });
 
@@ -382,7 +382,7 @@ describe("getWhatsAppLink — security", () => {
     const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Unauthorized.");
+    expect((result as { error: string }).error).toBe("Action non autorisée.");
   });
 
   it("🔒 returns error when booking is 'declined' (not accepted)", async () => {
@@ -399,7 +399,7 @@ describe("getWhatsAppLink — security", () => {
 
     expect(result.success).toBe(false);
     expect((result as { error: string }).error).toBe(
-      "WhatsApp link is only available for accepted bookings."
+      "Le lien WhatsApp n'est disponible que pour les réservations acceptées."
     );
   });
 
@@ -474,6 +474,6 @@ describe("getWhatsAppLink — security", () => {
     const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Booking not found.");
+    expect((result as { error: string }).error).toBe("Réservation introuvable.");
   });
 });
