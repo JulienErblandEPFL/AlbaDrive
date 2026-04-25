@@ -1,1 +1,18 @@
-{}
+{
+  "home": "Home",
+  "trips": "Trips",
+  "dashboard": "Dashboard",
+  "profile": "Profile",
+  "propose": "Offer",
+  "proposeTrip": "Offer a trip",
+  "signOut": "Sign out",
+  "signOutLoading": "Signing out…",
+  "signIn": "Sign in",
+  "signInShort": "Sign in",
+  "register": "Sign up",
+  "aria": {
+    "mainNav": "Main navigation",
+    "mobileNav": "Mobile navigation",
+    "userMenu": "User menu"
+  }
+}

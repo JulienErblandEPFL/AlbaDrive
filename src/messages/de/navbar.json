@@ -1,1 +1,18 @@
-{}
+{
+  "home": "Startseite",
+  "trips": "Fahrten",
+  "dashboard": "Übersicht",
+  "profile": "Profil",
+  "propose": "Anbieten",
+  "proposeTrip": "Fahrt anbieten",
+  "signOut": "Abmelden",
+  "signOutLoading": "Wird abgemeldet…",
+  "signIn": "Anmelden",
+  "signInShort": "Anmelden",
+  "register": "Registrieren",
+  "aria": {
+    "mainNav": "Hauptnavigation",
+    "mobileNav": "Mobile Navigation",
+    "userMenu": "Benutzermenü"
+  }
+}
