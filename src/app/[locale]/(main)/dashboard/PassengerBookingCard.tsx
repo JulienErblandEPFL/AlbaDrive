@@ -3,8 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { useFormatLocalizedDate } from "@/lib/intl/date";
 import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
@@ -51,12 +50,9 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   const [isLoadingWA, startLoadingWA] = useTransition();
   const [waError, setWaError] = useState<string | null>(null);
   const [isReviewOpen, setReviewOpen] = useState(false);
+  const formatDate = useFormatLocalizedDate();
 
-  const formattedDate = format(
-    new Date(booking.trip.departure_at),
-    "EEE d MMM 'à' HH'h'mm",
-    { locale: fr }
-  );
+  const formattedDate = formatDate(booking.trip.departure_at, "cardDate");
 
   const isAccepted = booking.status === "accepted";
   const isTripCancelled = booking.status === "trip_cancelled";

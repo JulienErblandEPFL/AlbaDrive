@@ -4,20 +4,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getTranslations } from "next-intl/server";
 import { ArrowLeft, Calendar, Users, Euro, Car, MessageSquare, MapPin } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { BookingSection } from "./BookingSection";
 import { StarRating } from "@/components/ui/StarRating";
+import { formatLocalizedDate } from "@/lib/intl/date";
+import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb, TripStatus } from "@/types/database.types";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: SupportedLocale }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
   const supabase = await createServerClient();
   const { data: trip } = await supabase
     .from("trips")
@@ -28,9 +29,10 @@ export async function generateMetadata({
 
   if (!trip) return { title: "Trajet introuvable — AlbaDrive" };
 
+  const t = await getTranslations({ locale, namespace: "common.dateFormat" });
   const origin = (trip.origin as unknown as LocationJsonb).label;
   const destination = (trip.destination as unknown as LocationJsonb).label;
-  const date = format(new Date(trip.departure_at), "d MMM yyyy", { locale: fr });
+  const date = formatLocalizedDate(trip.departure_at, t("metaShort"), locale);
 
   return {
     title: `${origin} → ${destination} · ${date} — AlbaDrive`,
@@ -40,9 +42,9 @@ export async function generateMetadata({
 export default async function TripDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: SupportedLocale }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const supabase = await createServerClient();
 
   const {
@@ -79,10 +81,11 @@ export default async function TripDetailPage({
   const isOwnTrip = user?.id === trip.driver_id;
   const isFull = trip.available_seats === 0;
 
-  const formattedDate = format(
-    new Date(trip.departure_at),
-    "EEEE d MMMM yyyy 'à' HH'h'mm",
-    { locale: fr }
+  const t = await getTranslations({ locale, namespace: "common.dateFormat" });
+  const formattedDate = formatLocalizedDate(
+    trip.departure_at,
+    t("detail"),
+    locale,
   );
 
   const tripPath = `/trips/${id}`;

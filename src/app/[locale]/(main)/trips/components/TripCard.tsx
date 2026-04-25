@@ -3,8 +3,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { useFormatLocalizedDate } from "@/lib/intl/date";
 import { MapPin, Calendar, Users, Euro, MessageSquare, ChevronDown, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -39,11 +38,9 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
     { type: "success" } | { type: "error"; message: string } | null
   >(null);
   const [isPending, startTransition] = useTransition();
+  const formatDate = useFormatLocalizedDate();
 
-  const departureDate = new Date(trip.departure_at);
-  const formattedDate = format(departureDate, "EEEE d MMMM 'à' HH'h'mm", {
-    locale: fr,
-  });
+  const formattedDate = formatDate(trip.departure_at, "tripCard");
 
   function handleBook() {
     startTransition(async () => {

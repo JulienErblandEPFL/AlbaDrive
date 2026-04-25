@@ -3,8 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { useFormatLocalizedDate } from "@/lib/intl/date";
 import {
   Calendar,
   Users,
@@ -172,12 +171,9 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
   const router = useRouter();
   const [isCancelling, startCancel] = useTransition();
   const [reviewTarget, setReviewTarget] = useState<BookingItem | null>(null);
+  const formatDate = useFormatLocalizedDate();
 
-  const formattedDate = format(
-    new Date(trip.departure_at),
-    "EEE d MMM 'à' HH'h'mm",
-    { locale: fr }
-  );
+  const formattedDate = formatDate(trip.departure_at, "cardDate");
 
   const pendingBookings = trip.bookings.filter((b) => b.status === "pending");
   const otherBookings = trip.bookings.filter((b) => b.status !== "pending");

@@ -1,1 +1,8 @@
-{}
+{
+  "dateFormat": {
+    "cardDate": "EEE, d. MMM 'um' HH:mm",
+    "detail": "EEEE, d. MMMM yyyy 'um' HH:mm 'Uhr'",
+    "tripCard": "EEEE, d. MMMM 'um' HH:mm 'Uhr'",
+    "metaShort": "d. MMM yyyy"
+  }
+}
