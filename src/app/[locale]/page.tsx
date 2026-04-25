@@ -1,22 +1,37 @@
-// src/app/page.tsx
+// src/app/[locale]/page.tsx
 // Public landing page — own header, hero, how-it-works, driver CTA.
 // Uses root layout only (no (main) layout shell).
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { SearchBar } from "./(main)/trips/components/SearchBar";
 import { Car, ArrowRight, Search, UserCheck, MessageCircle } from "lucide-react";
+import type { SupportedLocale } from "@/i18n/routing";
 
-export const metadata: Metadata = {
-  title: "AlbaDrive — Covoiturage albanais en Europe",
-  description:
-    "Le covoiturage de confiance pour la diaspora albanaise. Genève → Pristina, München → Tirana et bien plus.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: SupportedLocale }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "landing.metadata" });
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 // ── Header ────────────────────────────────────────────────────
 
-function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
+function LandingHeader({
+  isAuthenticated,
+  t,
+}: {
+  isAuthenticated: boolean;
+  t: Awaited<ReturnType<typeof getTranslations<"landing.header">>>;
+}) {
   return (
     <header className="absolute top-0 left-0 right-0 z-10">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -28,12 +43,12 @@ function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
           Alba<span className="text-red-400">Drive</span>
         </Link>
 
-        <nav className="flex items-center gap-2" aria-label="Navigation">
+        <nav className="flex items-center gap-2" aria-label={t("nav")}>
           <Link
             href="/trips"
             className="h-9 px-4 rounded-xl text-stone-300 text-sm font-medium hover:text-white hover:bg-white/10 transition-colors duration-150 flex items-center"
           >
-            Trajets
+            {t("trips")}
           </Link>
 
           {isAuthenticated ? (
@@ -41,7 +56,7 @@ function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
               href="/dashboard"
               className="h-9 px-4 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition-colors duration-150 flex items-center gap-1.5"
             >
-              Tableau de bord
+              {t("dashboard")}
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </Link>
           ) : (
@@ -50,13 +65,13 @@ function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
                 href="/login"
                 className="h-9 px-4 rounded-xl text-stone-300 text-sm font-medium hover:text-white hover:bg-white/10 transition-colors duration-150 flex items-center"
               >
-                Connexion
+                {t("signIn")}
               </Link>
               <Link
                 href="/register"
                 className="h-9 px-4 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-600 transition-colors duration-150 flex items-center"
               >
-                S&apos;inscrire
+                {t("register")}
               </Link>
             </>
           )}
@@ -66,48 +81,42 @@ function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
   );
 }
 
-// ── How it works ──────────────────────────────────────────────
-
-const HOW_IT_WORKS = [
-  {
-    step: "01",
-    icon: Search,
-    title: "Cherchez un trajet",
-    description:
-      "Parcourez les trajets disponibles sur le corridor Europe ↔ Balkans. Filtrez par ville de départ, d'arrivée et par date.",
-  },
-  {
-    step: "02",
-    icon: UserCheck,
-    title: "Réservez une place",
-    description:
-      "Envoyez une demande de réservation au conducteur avec un message optionnel. Zéro paiement en ligne.",
-  },
-  {
-    step: "03",
-    icon: MessageCircle,
-    title: "Voyagez ensemble",
-    description:
-      "Une fois accepté, contactez le conducteur directement sur WhatsApp pour organiser le rendez-vous.",
-  },
-] as const;
-
 // ── Page ──────────────────────────────────────────────────────
 
-export default async function LandingPage() {
+const ROUTE_EXAMPLES = [
+  "Genève → Pristina",
+  "München → Tirana",
+  "Zürich → Shkodër",
+  "Berlin → Sarajevo",
+] as const;
+
+export default async function LandingPage({
+  params,
+}: {
+  params: Promise<{ locale: SupportedLocale }>;
+}) {
+  const { locale } = await params;
   const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   const isAuthenticated = !!user;
+
+  const t = await getTranslations({ locale, namespace: "landing" });
+  const tHeader = await getTranslations({ locale, namespace: "landing.header" });
+
+  const HOW_IT_WORKS = [
+    { step: "01", icon: Search, title: t("howItWorks.step1.title"), description: t("howItWorks.step1.description") },
+    { step: "02", icon: UserCheck, title: t("howItWorks.step2.title"), description: t("howItWorks.step2.description") },
+    { step: "03", icon: MessageCircle, title: t("howItWorks.step3.title"), description: t("howItWorks.step3.description") },
+  ] as const;
 
   return (
     <div className="flex flex-col min-h-dvh">
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section
         className="relative overflow-hidden min-h-[85vh] flex flex-col pt-16"
-        aria-label="Accueil"
+        aria-label={t("hero.ariaLabel")}
       >
         {/* Background photo */}
         <Image
@@ -136,26 +145,25 @@ export default async function LandingPage() {
           aria-hidden="true"
         />
 
-        <LandingHeader isAuthenticated={isAuthenticated} />
+        <LandingHeader isAuthenticated={isAuthenticated} t={tHeader} />
 
         <div className="relative flex-1 flex items-center max-w-3xl mx-auto px-6 pt-16 pb-20 text-center w-full">
         <div className="w-full">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-medium text-stone-300 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-            Communauté albanaise en Europe
+            {t("hero.badge")}
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight tracking-tight mb-5">
-            Voyagez ensemble.
+            {t("hero.headline_part1")}
             <br />
-            <span className="text-red-400">Vers les Balkans.</span>
+            <span className="text-red-400">{t("hero.headline_part2")}</span>
           </h1>
 
           <p className="text-stone-400 text-lg sm:text-xl leading-relaxed mb-12 max-w-xl mx-auto">
-            Le covoiturage de confiance pour la diaspora albanaise.
-            Genève → Pristina, München → Tirana et bien plus.
+            {t("hero.subtitle")}
           </p>
 
           {/* Search card */}
@@ -165,12 +173,7 @@ export default async function LandingPage() {
 
           {/* Route examples */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-            {[
-              "Genève → Pristina",
-              "München → Tirana",
-              "Zürich → Shkodër",
-              "Berlin → Sarajevo",
-            ].map((route) => {
+            {ROUTE_EXAMPLES.map((route) => {
               const [from, to] = route.split(" → ");
               return (
                 <Link
@@ -199,7 +202,7 @@ export default async function LandingPage() {
         <div className="relative h-52 sm:h-64 overflow-hidden">
           <Image
             src="/images/albania_pont.jpg"
-            alt="Pont albanais symbolisant le lien communautaire"
+            alt={t("howItWorks.imgAlt")}
             fill
             className="object-cover object-center"
           />
@@ -213,10 +216,10 @@ export default async function LandingPage() {
               id="how-it-works-title"
               className="text-2xl sm:text-3xl font-bold text-white mb-2 drop-shadow-md"
             >
-              Comment ça marche ?
+              {t("howItWorks.title")}
             </h2>
             <p className="text-stone-200 text-base max-w-md drop-shadow">
-              Trois étapes simples pour voyager avec la communauté.
+              {t("howItWorks.subtitle")}
             </p>
           </div>
         </div>
@@ -259,24 +262,23 @@ export default async function LandingPage() {
             id="driver-cta-title"
             className="text-2xl sm:text-3xl font-bold text-white mb-4"
           >
-            Vous rentrez en Albanie ou au Kosovo ?
+            {t("driverCta.title")}
           </h2>
           <p className="text-red-200 text-base mb-8 max-w-md mx-auto">
-            Proposez votre trajet et partagez les frais avec des compatriotes.
-            Simple, gratuit, communautaire.
+            {t("driverCta.subtitle")}
           </p>
           <Link
             href={isAuthenticated ? "/trips/create" : "/register"}
             className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-white text-red-800 text-sm font-bold hover:bg-stone-100 active:bg-stone-200 transition-colors duration-150"
           >
-            Proposer un trajet
+            {t("driverCta.button")}
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
           {!isAuthenticated && (
             <p className="text-red-300 text-xs mt-4">
-              Déjà inscrit ?{" "}
+              {t("driverCta.alreadyMember")}{" "}
               <Link href="/login" className="text-white underline underline-offset-2">
-                Connexion
+                {t("driverCta.signInLink")}
               </Link>
             </p>
           )}
@@ -294,14 +296,14 @@ export default async function LandingPage() {
             Alba<span className="text-red-400">Drive</span>
           </Link>
           <p className="text-stone-500 text-xs text-center">
-            Covoiturage pour la diaspora albanaise en Europe.
+            {t("footer.tagline")}
           </p>
-          <nav className="flex items-center gap-4" aria-label="Liens footer">
+          <nav className="flex items-center gap-4" aria-label={t("footer.ariaLabel")}>
             <Link href="/trips" className="text-xs text-stone-500 hover:text-stone-300 transition-colors">
-              Trajets
+              {t("footer.trips")}
             </Link>
             <Link href="/register" className="text-xs text-stone-500 hover:text-stone-300 transition-colors">
-              S&apos;inscrire
+              {t("footer.register")}
             </Link>
           </nav>
         </div>
