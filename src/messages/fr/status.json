@@ -1,1 +1,15 @@
-{}
+{
+  "trip": {
+    "open": "Disponible",
+    "full": "Complet",
+    "cancelled": "Annulé",
+    "completed": "Terminé"
+  },
+  "booking": {
+    "pending": "En attente",
+    "accepted": "Acceptée",
+    "declined": "Refusée",
+    "cancelled": "Annulée",
+    "trip_cancelled": "Trajet annulé"
+  }
+}
