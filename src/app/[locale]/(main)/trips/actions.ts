@@ -1,4 +1,4 @@
-// src/app/(main)/trips/actions.ts
+// src/app/[locale]/(main)/trips/actions.ts
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -12,12 +12,12 @@ export async function createTrip(rawData: unknown): Promise<ActionResult<TripRow
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentification requise." };
+    return { success: false, error: { code: "errors.common.auth_required" } };
   }
 
   const parsed = createTripSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const { data: trip, error: dbError } = await supabase
@@ -32,7 +32,7 @@ export async function createTrip(rawData: unknown): Promise<ActionResult<TripRow
 
   if (dbError) {
     console.error("[createTrip]", dbError.message);
-    return { success: false, error: "La création du trajet a échoué. Veuillez réessayer." };
+    return { success: false, error: { code: "errors.trip.create_failed" } };
   }
 
   revalidatePath("/trips");
@@ -44,12 +44,12 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentification requise." };
+    return { success: false, error: { code: "errors.common.auth_required" } };
   }
 
   const parsed = cancelTripSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const { data: trip, error: fetchError } = await supabase
@@ -60,14 +60,16 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
     .single();
 
   if (fetchError || !trip) {
-    return { success: false, error: "Trajet introuvable." };
+    return { success: false, error: { code: "errors.trip.not_found" } };
   }
   if (trip.driver_id !== user.id) {
-    return { success: false, error: "Action non autorisée." };
+    return { success: false, error: { code: "errors.common.unauthorized" } };
   }
-  const statusLabels: Record<string, string> = { cancelled: "annulé", completed: "terminé" };
   if (trip.status === "cancelled" || trip.status === "completed") {
-    return { success: false, error: `Ce trajet est déjà ${statusLabels[trip.status] ?? trip.status}.` };
+    return {
+      success: false,
+      error: { code: "errors.trip.already_status", params: { status: trip.status } },
+    };
   }
 
   const { error: updateError } = await supabase
@@ -78,7 +80,7 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
 
   if (updateError) {
     console.error("[cancelTrip]", updateError.message);
-    return { success: false, error: "L'annulation du trajet a échoué. Veuillez réessayer." };
+    return { success: false, error: { code: "errors.trip.cancel_failed" } };
   }
 
   revalidatePath("/trips");

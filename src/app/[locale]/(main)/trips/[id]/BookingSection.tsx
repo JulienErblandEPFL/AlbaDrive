@@ -4,6 +4,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { requestBooking } from "@/app/[locale]/(main)/bookings/actions";
 import { Button } from "@/components/ui/Button";
 import { LogIn, CheckCircle, AlertCircle } from "lucide-react";
@@ -30,6 +31,7 @@ export function BookingSection({
   const [result, setResult] = useState<
     { type: "success" } | { type: "error"; message: string } | null
   >(null);
+  const t = useTranslations();
 
   if (!isAuthenticated) {
     return (
@@ -104,7 +106,7 @@ export function BookingSection({
       if (res.success) {
         setResult({ type: "success" });
       } else {
-        setResult({ type: "error", message: res.error });
+        setResult({ type: "error", message: t(res.error.code, res.error.params) });
       }
     });
   }

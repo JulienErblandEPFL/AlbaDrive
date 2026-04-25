@@ -4,6 +4,7 @@
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth.schema";
@@ -34,6 +35,7 @@ const GoogleIcon = () => (
 export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
+  const t = useTranslations();
 
   const {
     register,
@@ -49,7 +51,7 @@ export function LoginForm() {
       const result = await signIn(data);
       // If we reach here, signIn returned an error (redirect throws, so no return on success).
       if (result && !result.success) {
-        setError("root", { message: result.error });
+        setError("root", { message: t(result.error.code, result.error.params) });
       }
     });
   }

@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useFormatLocalizedDate } from "@/lib/intl/date";
 import { Calendar, Users, MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -51,6 +52,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   const [waError, setWaError] = useState<string | null>(null);
   const [isReviewOpen, setReviewOpen] = useState(false);
   const formatDate = useFormatLocalizedDate();
+  const t = useTranslations();
 
   const formattedDate = formatDate(booking.trip.departure_at, "cardDate");
 
@@ -65,7 +67,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        alert(t(result.error.code, result.error.params));
       }
     });
   }
@@ -77,7 +79,11 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
       if (result.success && result.data) {
         window.open(result.data.link_to_contact, "_blank", "noopener,noreferrer");
       } else {
-        setWaError(result.success === false ? result.error : "Erreur inattendue");
+        setWaError(
+          result.success === false
+            ? t(result.error.code, result.error.params)
+            : t("errors.unexpected"),
+        );
       }
     });
   }

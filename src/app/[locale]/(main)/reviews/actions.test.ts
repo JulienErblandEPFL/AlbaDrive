@@ -1,4 +1,5 @@
 // src/app/(main)/reviews/actions.test.ts
+import type { ActionError } from "@/types/actions";
 import { describe, it, expect, vi } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER, MOCK_PASSENGER } from "@/lib/test-utils/supabase-mock";
@@ -102,7 +103,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentification requise.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.auth_required");
   });
 
   it("returns the zod message when rating is out of range", async () => {
@@ -111,7 +112,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview({ ...VALID_DRIVER_INPUT, rating: 7 });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/entre 1 et 5/);
+    expect((result as { error: ActionError }).error.code).toBe("validation.review.rating.range");
   });
 
   it("returns the zod message when comment exceeds 1000 chars", async () => {
@@ -120,7 +121,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview({ ...VALID_DRIVER_INPUT, comment: "a".repeat(1001) });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/trop long/);
+    expect((result as { error: ActionError }).error.code).toBe("validation.review.comment.too_long");
   });
 
   it("rejects when trip is not completed", async () => {
@@ -130,7 +131,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Vous ne pouvez évaluer qu'un trajet terminé.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.trip_not_completed");
   });
 
   it("rejects when the two users did not share the trip", async () => {
@@ -140,7 +141,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Vous n'avez pas partagé ce trajet avec cette personne.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.not_participants");
   });
 
   it("rejects when the 30-day review window has expired", async () => {
@@ -150,7 +151,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/30 jours/);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.window_expired");
   });
 
   it("rejects self-review via RPC code", async () => {
@@ -160,7 +161,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview({ ...VALID_DRIVER_INPUT, reviewee_id: MOCK_USER.id });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/vous-même/);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.self_review");
   });
 
   it("rejects a duplicate via RPC code", async () => {
@@ -170,7 +171,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/déjà laissé un avis/);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.duplicate");
   });
 
   it("rejects a duplicate via insert unique-violation (belt & suspenders)", async () => {
@@ -184,7 +185,7 @@ describe("submitReview — rejections", () => {
     const result = await submitReview(VALID_DRIVER_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/déjà laissé un avis/);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.duplicate");
   });
 });
 
@@ -210,7 +211,7 @@ describe("getPassengerReviewSummary", () => {
     const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentification requise.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.auth_required");
   });
 
   it("returns error when RPC returns null (caller has no booking with this passenger)", async () => {
@@ -220,7 +221,7 @@ describe("getPassengerReviewSummary", () => {
     const result = await getPassengerReviewSummary({ user_id: ANOTHER_PASSENGER.id });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/non autoris/i);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.unauthorized");
   });
 
   it("returns the summary with pseudonymised reviewer names", async () => {
@@ -279,7 +280,7 @@ describe("getDriverReviewDetails", () => {
     setupMock(null);
     const result = await getDriverReviewDetails({ user_id: MOCK_USER.id });
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentification requise.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.auth_required");
   });
 
   it("returns error when RPC returns null (no accepted booking relationship)", async () => {
@@ -289,7 +290,7 @@ describe("getDriverReviewDetails", () => {
     const result = await getDriverReviewDetails({ user_id: MOCK_USER.id });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toMatch(/non autoris/i);
+    expect((result as { error: ActionError }).error.code).toBe("errors.review.unauthorized");
   });
 
   it("returns pseudonymised recent comments about the driver", async () => {

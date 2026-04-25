@@ -1,4 +1,5 @@
 // src/app/(main)/trips/actions.test.ts
+import type { ActionError } from "@/types/actions";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER } from "@/lib/test-utils/supabase-mock";
@@ -44,7 +45,7 @@ describe("createTrip", () => {
     const result = await createTrip(VALID_TRIP_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentification requise.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.auth_required");
   });
 
   it("returns error when departure_at is in the past", async () => {
@@ -54,14 +55,14 @@ describe("createTrip", () => {
     });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("future");
+    expect((result as { error: ActionError }).error.code).toBe("validation.trip.departure_at.future");
   });
 
   it("returns error when total_seats is 0", async () => {
     const result = await createTrip({ ...VALID_TRIP_INPUT, total_seats: 0 });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBeDefined();
+    expect((result as { error: ActionError }).error.code).toBeDefined();
   });
 
   it("returns error when origin label is missing", async () => {
@@ -92,7 +93,7 @@ describe("createTrip", () => {
     const result = await createTrip(VALID_TRIP_INPUT);
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("La création du trajet a échoué. Veuillez réessayer.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.trip.create_failed");
   });
 });
 
@@ -113,7 +114,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "trip-abc-123" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Authentification requise.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.auth_required");
   });
 
   it("returns error when trip_id is not a valid UUID", async () => {
@@ -128,7 +129,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Trajet introuvable.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.trip.not_found");
   });
 
   it("returns Unauthorized when user is not the driver", async () => {
@@ -140,7 +141,7 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toBe("Action non autorisée.");
+    expect((result as { error: ActionError }).error.code).toBe("errors.common.unauthorized");
   });
 
   it("returns error when trip is already cancelled", async () => {
@@ -152,7 +153,9 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(false);
-    expect((result as { error: string }).error).toContain("annulé");
+    const err = (result as { error: ActionError }).error;
+    expect(err.code).toBe("errors.trip.already_status");
+    expect(err.params?.status).toBe("cancelled");
   });
 
   it("successfully cancels an open trip", async () => {

@@ -1,4 +1,4 @@
-// src/app/(main)/reviews/actions.ts
+// src/app/[locale]/(main)/reviews/actions.ts
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -18,24 +18,24 @@ type CanReviewCode =
   | "NOT_PARTICIPANTS"
   | "DUPLICATE";
 
-function mapEligibilityError(code: CanReviewCode): string {
+function mapEligibilityCode(code: CanReviewCode): string {
   switch (code) {
     case "NOT_AUTHENTICATED":
-      return "Authentification requise.";
+      return "errors.common.auth_required";
     case "SELF_REVIEW":
-      return "Vous ne pouvez pas vous évaluer vous-même.";
+      return "errors.review.self_review";
     case "TRIP_NOT_FOUND":
-      return "Trajet introuvable.";
+      return "errors.review.trip_not_found";
     case "TRIP_NOT_COMPLETED":
-      return "Vous ne pouvez évaluer qu'un trajet terminé.";
+      return "errors.review.trip_not_completed";
     case "WINDOW_EXPIRED":
-      return "Le délai pour laisser un avis (30 jours) est dépassé.";
+      return "errors.review.window_expired";
     case "NOT_PARTICIPANTS":
-      return "Vous n'avez pas partagé ce trajet avec cette personne.";
+      return "errors.review.not_participants";
     case "DUPLICATE":
-      return "Vous avez déjà laissé un avis pour ce trajet.";
+      return "errors.review.duplicate";
     default:
-      return "Évaluation impossible. Veuillez réessayer.";
+      return "errors.review.submit_failed";
   }
 }
 
@@ -44,12 +44,12 @@ export async function submitReview(rawData: unknown): Promise<ActionResult<Revie
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentification requise." };
+    return { success: false, error: { code: "errors.common.auth_required" } };
   }
 
   const parsed = submitReviewSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   // Pre-insert eligibility check via RPC — gives us a specific error code.
@@ -62,11 +62,11 @@ export async function submitReview(rawData: unknown): Promise<ActionResult<Revie
 
   if (rpcError) {
     console.error("[submitReview] can_review_reason", rpcError.message);
-    return { success: false, error: "Évaluation impossible. Veuillez réessayer." };
+    return { success: false, error: { code: "errors.review.submit_failed" } };
   }
 
   if (code !== "OK") {
-    return { success: false, error: mapEligibilityError(code as CanReviewCode) };
+    return { success: false, error: { code: mapEligibilityCode(code as CanReviewCode) } };
   }
 
   const { data: review, error: insertError } = await supabase
@@ -83,10 +83,10 @@ export async function submitReview(rawData: unknown): Promise<ActionResult<Revie
 
   if (insertError) {
     if ((insertError as { code?: string }).code === "23505") {
-      return { success: false, error: mapEligibilityError("DUPLICATE") };
+      return { success: false, error: { code: mapEligibilityCode("DUPLICATE") } };
     }
     console.error("[submitReview]", insertError.message);
-    return { success: false, error: "Évaluation impossible. Veuillez réessayer." };
+    return { success: false, error: { code: "errors.review.submit_failed" } };
   }
 
   revalidatePath("/dashboard");
@@ -112,12 +112,12 @@ export async function getPassengerReviewSummary(rawData: unknown): Promise<Actio
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentification requise." };
+    return { success: false, error: { code: "errors.common.auth_required" } };
   }
 
   const parsed = getReviewSummarySchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const { data, error } = await supabase.rpc("get_passenger_review_summary", {
@@ -126,11 +126,11 @@ export async function getPassengerReviewSummary(rawData: unknown): Promise<Actio
 
   if (error) {
     console.error("[getPassengerReviewSummary]", error.message);
-    return { success: false, error: "Chargement des avis impossible." };
+    return { success: false, error: { code: "errors.review.summary_failed" } };
   }
 
   if (data === null) {
-    return { success: false, error: "Action non autorisée." };
+    return { success: false, error: { code: "errors.review.unauthorized" } };
   }
 
   return { success: true, data: adaptSummary(data as NonNullable<ReviewSummaryRaw>) };
@@ -141,12 +141,12 @@ export async function getDriverReviewDetails(rawData: unknown): Promise<ActionRe
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: false, error: "Authentification requise." };
+    return { success: false, error: { code: "errors.common.auth_required" } };
   }
 
   const parsed = getReviewSummarySchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const { data, error } = await supabase.rpc("get_driver_review_details", {
@@ -155,11 +155,11 @@ export async function getDriverReviewDetails(rawData: unknown): Promise<ActionRe
 
   if (error) {
     console.error("[getDriverReviewDetails]", error.message);
-    return { success: false, error: "Chargement des avis impossible." };
+    return { success: false, error: { code: "errors.review.summary_failed" } };
   }
 
   if (data === null) {
-    return { success: false, error: "Action non autorisée." };
+    return { success: false, error: { code: "errors.review.unauthorized" } };
   }
 
   return { success: true, data: adaptSummary(data as NonNullable<ReviewSummaryRaw>) };

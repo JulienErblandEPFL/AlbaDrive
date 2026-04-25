@@ -4,6 +4,7 @@
 import { useTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth.schema";
@@ -36,6 +37,7 @@ export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
   const [emailSent, setEmailSent] = useState(false);
+  const t = useTranslations();
 
   const {
     register,
@@ -52,7 +54,7 @@ export function RegisterForm() {
       if (!result) return; // redirect happened
 
       if (!result.success) {
-        setError("root", { message: result.error });
+        setError("root", { message: t(result.error.code, result.error.params) });
         return;
       }
 

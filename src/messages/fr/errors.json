@@ -1,1 +1,51 @@
-{}
+{
+  "common": {
+    "auth_required": "Authentification requise.",
+    "unauthorized": "Action non autorisée.",
+    "session_expired": "Session expirée. Reconnectez-vous."
+  },
+  "auth": {
+    "invalid_credentials": "Email ou mot de passe incorrect.",
+    "email_already_registered": "Un compte existe déjà avec cet email.",
+    "signup_failed": "Impossible de créer le compte. Réessayez.",
+    "phone_already_used": "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+    "profile_save_failed": "Impossible de sauvegarder le profil. Réessayez."
+  },
+  "trip": {
+    "not_found": "Trajet introuvable.",
+    "create_failed": "La création du trajet a échoué. Veuillez réessayer.",
+    "cancel_failed": "L'annulation du trajet a échoué. Veuillez réessayer.",
+    "already_status": "Ce trajet est déjà {status, select, cancelled {annulé} completed {terminé} other {clôturé}}."
+  },
+  "booking": {
+    "phone_required": "Veuillez compléter votre profil avec un numéro de téléphone avant de réserver.",
+    "self_booking": "Vous ne pouvez pas réserver votre propre trajet.",
+    "trip_closed": "Ce trajet n'accepte plus de réservations.",
+    "not_enough_seats": "{count, plural, one {Seulement # place disponible.} other {Seulement # places disponibles.}}",
+    "duplicate_active": "Vous avez déjà une réservation active sur ce trajet.",
+    "request_failed": "La réservation a échoué. Veuillez réessayer.",
+    "not_found": "Réservation introuvable.",
+    "only_pending_acceptable": "Seules les demandes en attente peuvent être acceptées.",
+    "no_seats": "Pas assez de places disponibles.",
+    "accept_failed": "Impossible d'accepter la réservation. Veuillez réessayer.",
+    "not_cancellable": "Cette réservation ne peut pas être annulée.",
+    "cancel_failed": "L'annulation a échoué. Veuillez réessayer."
+  },
+  "whatsapp": {
+    "only_for_accepted": "Le lien WhatsApp n'est disponible que pour les réservations acceptées.",
+    "contact_unavailable": "Les coordonnées du contact sont indisponibles.",
+    "no_phone": "Votre profil ne contient pas de numéro de téléphone."
+  },
+  "review": {
+    "self_review": "Vous ne pouvez pas vous évaluer vous-même.",
+    "trip_not_found": "Trajet introuvable.",
+    "trip_not_completed": "Vous ne pouvez évaluer qu'un trajet terminé.",
+    "window_expired": "Le délai pour laisser un avis (30 jours) est dépassé.",
+    "not_participants": "Vous n'avez pas partagé ce trajet avec cette personne.",
+    "duplicate": "Vous avez déjà laissé un avis pour ce trajet.",
+    "submit_failed": "Évaluation impossible. Veuillez réessayer.",
+    "summary_failed": "Chargement des avis impossible.",
+    "unauthorized": "Action non autorisée."
+  },
+  "unexpected": "Erreur inattendue."
+}

@@ -1,1 +1,51 @@
-{}
+{
+  "common": {
+    "auth_required": "Anmeldung erforderlich.",
+    "unauthorized": "Aktion nicht erlaubt.",
+    "session_expired": "Sitzung abgelaufen. Bitte erneut anmelden."
+  },
+  "auth": {
+    "invalid_credentials": "E-Mail oder Passwort ist falsch.",
+    "email_already_registered": "Es existiert bereits ein Konto mit dieser E-Mail.",
+    "signup_failed": "Konto konnte nicht erstellt werden. Bitte erneut versuchen.",
+    "phone_already_used": "Diese Telefonnummer wird bereits von einem anderen Konto verwendet.",
+    "profile_save_failed": "Profil konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
+  "trip": {
+    "not_found": "Fahrt nicht gefunden.",
+    "create_failed": "Die Fahrt konnte nicht erstellt werden. Bitte erneut versuchen.",
+    "cancel_failed": "Die Fahrt konnte nicht storniert werden. Bitte erneut versuchen.",
+    "already_status": "Diese Fahrt ist bereits {status, select, cancelled {storniert} completed {abgeschlossen} other {geschlossen}}."
+  },
+  "booking": {
+    "phone_required": "Bitte ergänze dein Profil um eine Telefonnummer, bevor du buchst.",
+    "self_booking": "Du kannst deine eigene Fahrt nicht buchen.",
+    "trip_closed": "Diese Fahrt nimmt keine Buchungen mehr an.",
+    "not_enough_seats": "{count, plural, one {Nur # Sitzplatz verfügbar.} other {Nur # Sitzplätze verfügbar.}}",
+    "duplicate_active": "Du hast bereits eine aktive Buchung für diese Fahrt.",
+    "request_failed": "Buchung fehlgeschlagen. Bitte erneut versuchen.",
+    "not_found": "Buchung nicht gefunden.",
+    "only_pending_acceptable": "Nur ausstehende Anfragen können angenommen werden.",
+    "no_seats": "Nicht genügend Sitzplätze verfügbar.",
+    "accept_failed": "Die Buchung konnte nicht angenommen werden. Bitte erneut versuchen.",
+    "not_cancellable": "Diese Buchung kann nicht storniert werden.",
+    "cancel_failed": "Stornierung fehlgeschlagen. Bitte erneut versuchen."
+  },
+  "whatsapp": {
+    "only_for_accepted": "Der WhatsApp-Link ist nur für angenommene Buchungen verfügbar.",
+    "contact_unavailable": "Kontaktdaten sind nicht verfügbar.",
+    "no_phone": "Dein Profil hat keine Telefonnummer."
+  },
+  "review": {
+    "self_review": "Du kannst dich nicht selbst bewerten.",
+    "trip_not_found": "Fahrt nicht gefunden.",
+    "trip_not_completed": "Du kannst nur eine abgeschlossene Fahrt bewerten.",
+    "window_expired": "Der Zeitraum für eine Bewertung (30 Tage) ist abgelaufen.",
+    "not_participants": "Du hast diese Fahrt nicht mit dieser Person geteilt.",
+    "duplicate": "Du hast für diese Fahrt bereits eine Bewertung abgegeben.",
+    "submit_failed": "Bewertung konnte nicht abgesendet werden. Bitte erneut versuchen.",
+    "summary_failed": "Bewertungen konnten nicht geladen werden.",
+    "unauthorized": "Aktion nicht erlaubt."
+  },
+  "unexpected": "Unerwarteter Fehler."
+}

@@ -1,4 +1,4 @@
-// src/app/(auth)/login/actions.ts
+// src/app/[locale]/(auth)/login/actions.ts
 "use server";
 
 import { redirect } from "next/navigation";
@@ -9,7 +9,7 @@ import type { ActionResult } from "@/types/actions";
 export async function signIn(rawData: unknown): Promise<ActionResult> {
   const parsed = loginSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const supabase = await createServerClient();
@@ -21,7 +21,7 @@ export async function signIn(rawData: unknown): Promise<ActionResult> {
 
   if (error) {
     // Never expose the raw Supabase error — it can leak enumeration info.
-    return { success: false, error: "Email ou mot de passe incorrect." };
+    return { success: false, error: { code: "errors.auth.invalid_credentials" } };
   }
 
   // Middleware will handle /complete-profile redirect if profile is missing.

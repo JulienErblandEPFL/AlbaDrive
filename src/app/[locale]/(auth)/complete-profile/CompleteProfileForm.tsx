@@ -4,6 +4,7 @@
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
@@ -14,6 +15,7 @@ import { completeProfile } from "./actions";
 
 export function CompleteProfileForm() {
   const [isPending, startTransition] = useTransition();
+  const t = useTranslations();
 
   const {
     register,
@@ -28,7 +30,7 @@ export function CompleteProfileForm() {
     startTransition(async () => {
       const result = await completeProfile(data);
       if (result && !result.success) {
-        setError("root", { message: result.error });
+        setError("root", { message: t(result.error.code, result.error.params) });
       }
     });
   }

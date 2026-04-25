@@ -1,1 +1,52 @@
-{}
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "auth": {
+    "email": { "invalid": "Email i pavlefshëm" },
+    "password": {
+      "required": "Fjalëkalimi është i detyrueshëm",
+      "too_short": "Fjalëkalimi duhet të ketë të paktën 8 karaktere"
+    },
+    "confirm_password": { "required": "Konfirmimi është i detyrueshëm" },
+    "passwords_dont_match": "Fjalëkalimet nuk përputhen",
+    "full_name": {
+      "too_short": "Emri duhet të ketë të paktën 2 karaktere",
+      "too_long": "Emri është shumë i gjatë"
+    },
+    "phone": {
+      "format": "Formati i kërkuar: +41791234567 (filloni me kodin e shtetit)"
+    }
+  },
+  "trip": {
+    "location": {
+      "label_required": "Vendi është i detyrueshëm",
+      "lat_required": "Gjerësia gjeografike është e detyrueshme",
+      "lng_required": "Gjatësia gjeografike është e detyrueshme"
+    },
+    "departure_at": {
+      "invalid": "Format date i pavlefshëm",
+      "future": "Data e nisjes duhet të jetë në të ardhmen"
+    },
+    "total_seats": {
+      "min": "Kërkohet të paktën 1 vend",
+      "max": "Maksimumi 9 vende"
+    },
+    "id": { "invalid": "ID e udhëtimit e pavlefshme." }
+  },
+  "booking": {
+    "id": { "invalid": "ID e rezervimit e pavlefshme." },
+    "trip_id": { "invalid": "ID e udhëtimit e pavlefshme." }
+  },
+  "review": {
+    "trip_id": { "invalid": "ID e udhëtimit e pavlefshme." },
+    "reviewee_id": { "invalid": "ID e përdoruesit e pavlefshme." },
+    "user_id": { "invalid": "ID e përdoruesit e pavlefshme." },
+    "rating": {
+      "required": "Ju lutemi zgjidhni një notë.",
+      "range": "Nota duhet të jetë midis 1 dhe 5."
+    },
+    "comment": { "too_long": "Komenti është shumë i gjatë (maksimumi 1000 karaktere)." }
+  }
+}

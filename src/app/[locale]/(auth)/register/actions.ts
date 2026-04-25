@@ -1,4 +1,4 @@
-// src/app/(auth)/register/actions.ts
+// src/app/[locale]/(auth)/register/actions.ts
 "use server";
 
 import { redirect } from "next/navigation";
@@ -7,11 +7,11 @@ import { registerSchema } from "@/lib/validations/auth.schema";
 import type { ActionResult } from "@/types/actions";
 
 export async function signUp(
-  rawData: unknown
+  rawData: unknown,
 ): Promise<ActionResult<{ needsEmailConfirmation: boolean }>> {
   const parsed = registerSchema.safeParse(rawData);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+    return { success: false, error: { code: parsed.error.issues[0].message } };
   }
 
   const supabase = await createServerClient();
@@ -23,13 +23,10 @@ export async function signUp(
 
   if (error) {
     if (error.message.toLowerCase().includes("already registered")) {
-      return {
-        success: false,
-        error: "Un compte existe déjà avec cet email.",
-      };
+      return { success: false, error: { code: "errors.auth.email_already_registered" } };
     }
     console.error("[signUp]", error.message);
-    return { success: false, error: "Impossible de créer le compte. Réessayez." };
+    return { success: false, error: { code: "errors.auth.signup_failed" } };
   }
 
   // If Supabase email confirmation is enabled, there won't be a session yet.

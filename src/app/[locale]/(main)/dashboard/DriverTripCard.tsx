@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useFormatLocalizedDate } from "@/lib/intl/date";
 import {
   Calendar,
@@ -54,6 +55,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
   const router = useRouter();
   const [isAccepting, startAccept] = useTransition();
   const [isCancelling, startCancel] = useTransition();
+  const t = useTranslations();
 
   function handleAccept() {
     if (!window.confirm(`Accepter la demande de ${booking.passenger_name} ?`)) return;
@@ -62,7 +64,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        alert(t(result.error.code, result.error.params));
       }
     });
   }
@@ -75,7 +77,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        alert(t(result.error.code, result.error.params));
       }
     });
   }
@@ -172,6 +174,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
   const [isCancelling, startCancel] = useTransition();
   const [reviewTarget, setReviewTarget] = useState<BookingItem | null>(null);
   const formatDate = useFormatLocalizedDate();
+  const t = useTranslations();
 
   const formattedDate = formatDate(trip.departure_at, "cardDate");
 
@@ -191,7 +194,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        alert(t(result.error.code, result.error.params));
       }
     });
   }

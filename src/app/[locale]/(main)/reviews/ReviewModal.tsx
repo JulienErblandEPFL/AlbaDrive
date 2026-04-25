@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
@@ -37,6 +38,7 @@ export function ReviewModal({
 }: ReviewModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const t = useTranslations();
 
   const {
     register,
@@ -85,7 +87,7 @@ export function ReviewModal({
         onSubmitted?.();
         onClose();
       } else {
-        setSubmitError(result.error);
+        setSubmitError(t(result.error.code, result.error.params));
       }
     });
   }

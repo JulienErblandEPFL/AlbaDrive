@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useFormatLocalizedDate } from "@/lib/intl/date";
 import { MapPin, Calendar, Users, Euro, MessageSquare, ChevronDown, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -39,6 +40,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
   >(null);
   const [isPending, startTransition] = useTransition();
   const formatDate = useFormatLocalizedDate();
+  const t = useTranslations();
 
   const formattedDate = formatDate(trip.departure_at, "tripCard");
 
@@ -54,7 +56,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
         setResult({ type: "success" });
         setIsFormOpen(false);
       } else {
-        setResult({ type: "error", message: res.error });
+        setResult({ type: "error", message: t(res.error.code, res.error.params) });
       }
     });
   }

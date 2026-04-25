@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { ArrowRight, ArrowLeft, MapPin, Calendar, Car, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -106,6 +107,7 @@ function CitySelect({
 
 export function CreateTripForm() {
   const router = useRouter();
+  const t = useTranslations();
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
 
@@ -172,7 +174,7 @@ export function CreateTripForm() {
       });
 
       if (!result.success) {
-        setError("root", { message: result.error });
+        setError("root", { message: t(result.error.code, result.error.params) });
         return;
       }
 
