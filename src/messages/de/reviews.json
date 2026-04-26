@@ -1,1 +1,17 @@
-{}
+{
+  "modal": {
+    "title": "{label} bewerten",
+    "close": "Schliessen",
+    "ratingLabel": "Bewertung",
+    "ratingAriaLabel": "Bewertung der Fahrt",
+    "commentLabel": "Kommentar",
+    "commentOptional": "(optional)",
+    "commentPlaceholder": "Teilen Sie Ihre Erfahrung…",
+    "cancel": "Abbrechen",
+    "submit": "Bewertung senden"
+  },
+  "revieweeLabel": {
+    "driver": "Ihre/n Fahrer/in",
+    "passenger": "Ihre/n Mitfahrer/in"
+  }
+}

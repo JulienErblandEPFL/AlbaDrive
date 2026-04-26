@@ -1,1 +1,20 @@
-{}
+{
+  "_meta": {
+    "review": "needs-native-speaker-review"
+  },
+  "modal": {
+    "title": "Vlerësoni {label}",
+    "close": "Mbyll",
+    "ratingLabel": "Vlerësimi",
+    "ratingAriaLabel": "Vlerësimi i udhëtimit",
+    "commentLabel": "Komenti",
+    "commentOptional": "(opsional)",
+    "commentPlaceholder": "Ndani përvojën tuaj…",
+    "cancel": "Anulo",
+    "submit": "Dërgo vlerësimin"
+  },
+  "revieweeLabel": {
+    "driver": "shoferin tuaj",
+    "passenger": "pasagjerin tuaj"
+  }
+}

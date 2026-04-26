@@ -1,1 +1,6 @@
-{}
+{
+  "whatsapp": {
+    "passengerBody": "Bonjour, je vous contacte concernant notre trajet sur AlbaDrive. Vous avez accepté ma réservation — pouvons-nous organiser le point de rendez-vous ?",
+    "driverBody": "Bonjour, je suis votre conducteur AlbaDrive. Votre réservation est confirmée — parlons de l'organisation du rendez-vous."
+  }
+}

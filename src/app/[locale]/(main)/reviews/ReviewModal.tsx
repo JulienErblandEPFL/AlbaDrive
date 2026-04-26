@@ -39,6 +39,7 @@ export function ReviewModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const t = useTranslations();
+  const tModal = useTranslations("reviews.modal");
 
   const {
     register,
@@ -106,14 +107,14 @@ export function ReviewModal({
         <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
           <div>
             <h2 id="review-modal-title" className="text-lg font-bold text-stone-900">
-              Évaluer {revieweeLabel}
+              {tModal("title", { label: revieweeLabel })}
             </h2>
             <p className="text-sm text-stone-500 mt-0.5">{revieweeName}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={tModal("close")}
             className="p-1 rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -127,17 +128,17 @@ export function ReviewModal({
 
           {/* Rating */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-stone-700">Note</label>
+            <label className="text-sm font-medium text-stone-700">{tModal("ratingLabel")}</label>
             <StarRating
               mode="interactive"
               value={rating ?? 0}
               onChange={(v) => setValue("rating", v as 1, { shouldValidate: true })}
               size="lg"
-              ariaLabel="Note du trajet"
+              ariaLabel={tModal("ratingAriaLabel")}
             />
-            {errors.rating && (
+            {errors.rating?.message && (
               <p className="text-xs text-red-600" role="alert">
-                {errors.rating.message}
+                {t(errors.rating.message)}
               </p>
             )}
           </div>
@@ -145,19 +146,19 @@ export function ReviewModal({
           {/* Comment */}
           <div className="flex flex-col gap-1.5">
             <label htmlFor="review-comment" className="text-sm font-medium text-stone-700">
-              Commentaire <span className="text-stone-400 font-normal">(optionnel)</span>
+              {tModal("commentLabel")} <span className="text-stone-400 font-normal">{tModal("commentOptional")}</span>
             </label>
             <textarea
               id="review-comment"
               rows={4}
               maxLength={1000}
-              placeholder="Partagez votre expérience…"
+              placeholder={tModal("commentPlaceholder")}
               className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 text-sm resize-none focus:border-red-800 focus:ring-2 focus:ring-red-100 outline-none placeholder:text-stone-400"
               {...register("comment")}
             />
-            {errors.comment && (
+            {errors.comment?.message && (
               <p className="text-xs text-red-600" role="alert">
-                {errors.comment.message}
+                {t(errors.comment.message)}
               </p>
             )}
           </div>
@@ -173,10 +174,10 @@ export function ReviewModal({
 
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose} size="sm">
-              Annuler
+              {tModal("cancel")}
             </Button>
             <Button type="submit" variant="primary" isLoading={isPending} size="sm">
-              Envoyer l&apos;avis
+              {tModal("submit")}
             </Button>
           </div>
         </form>

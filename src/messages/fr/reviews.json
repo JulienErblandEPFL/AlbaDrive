@@ -1,1 +1,17 @@
-{}
+{
+  "modal": {
+    "title": "Évaluer {label}",
+    "close": "Fermer",
+    "ratingLabel": "Note",
+    "ratingAriaLabel": "Note du trajet",
+    "commentLabel": "Commentaire",
+    "commentOptional": "(optionnel)",
+    "commentPlaceholder": "Partagez votre expérience…",
+    "cancel": "Annuler",
+    "submit": "Envoyer l'avis"
+  },
+  "revieweeLabel": {
+    "driver": "votre conducteur",
+    "passenger": "votre passager"
+  }
+}

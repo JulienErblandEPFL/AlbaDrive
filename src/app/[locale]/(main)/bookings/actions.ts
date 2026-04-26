@@ -2,6 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   requestBookingSchema,
@@ -274,14 +275,12 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
   // Build wa.me link — strip all non-digit chars from E.164 number
   const otherPhone = otherParty.phone.replace(/\D/g, "");
 
-  // French pre-filled messages (recipient-locale extraction lives in step A9 / Phase D2)
-  const message = isPassenger
-    ? encodeURIComponent(
-        `Bonjour, je vous contacte concernant notre trajet sur AlbaDrive. Vous avez accepté ma réservation — pouvons-nous organiser le point de rendez-vous ?`,
-      )
-    : encodeURIComponent(
-        `Bonjour, je suis votre conducteur AlbaDrive. Votre réservation est confirmée — parlons de l'organisation du rendez-vous.`,
-      );
+  // Pre-filled message in the caller's locale. Recipient-locale switching is
+  // a Phase D enhancement that requires profiles.preferred_locale.
+  const t = await getTranslations("bookings.whatsapp");
+  const message = encodeURIComponent(
+    isPassenger ? t("passengerBody") : t("driverBody"),
+  );
 
   return {
     success: true,

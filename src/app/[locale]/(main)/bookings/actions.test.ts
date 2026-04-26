@@ -7,6 +7,13 @@ import { requestBooking, acceptBooking, cancelBooking, getWhatsAppLink } from ".
 
 vi.mock("@/lib/supabase/server");
 
+// next-intl's server helpers can't run outside a real Next request. Stub
+// getTranslations so action code-paths that emit pre-filled WhatsApp bodies
+// resolve to plain keys; the assertions only check the wa.me URL shape.
+vi.mock("next-intl/server", () => ({
+  getTranslations: async (namespace: string) => (key: string) => `${namespace}.${key}`,
+}));
+
 const VALID_REQUEST_INPUT = {
   trip_id: "00000000-0000-0000-0000-000000000000",
   seats_requested: 1,

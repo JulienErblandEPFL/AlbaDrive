@@ -1,1 +1,17 @@
-{}
+{
+  "modal": {
+    "title": "Rate {label}",
+    "close": "Close",
+    "ratingLabel": "Rating",
+    "ratingAriaLabel": "Trip rating",
+    "commentLabel": "Comment",
+    "commentOptional": "(optional)",
+    "commentPlaceholder": "Share your experience…",
+    "cancel": "Cancel",
+    "submit": "Submit review"
+  },
+  "revieweeLabel": {
+    "driver": "your driver",
+    "passenger": "your passenger"
+  }
+}
