@@ -8,5 +8,9 @@
   "rootMetadata": {
     "title": "AlbaDrive — Albanian carpooling across Europe",
     "description": "The travel community of the Albanian diaspora in Europe. Trips Geneva → Pristina, Munich → Tirana and more."
+  },
+  "localeSwitcher": {
+    "trigger": "Change language (currently {language})",
+    "menu": "Available languages"
   }
 }

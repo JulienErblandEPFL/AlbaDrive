@@ -52,5 +52,8 @@
       "range": "La note doit être entre 1 et 5."
     },
     "comment": { "too_long": "Le commentaire est trop long (1000 caractères maximum)." }
+  },
+  "locale": {
+    "invalid": "Locale invalide."
   }
 }

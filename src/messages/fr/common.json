@@ -8,5 +8,9 @@
   "rootMetadata": {
     "title": "AlbaDrive — Covoiturage albanais en Europe",
     "description": "La communauté du voyage albanais en Europe. Trajets Genève → Pristina, München → Tirana et plus encore."
+  },
+  "localeSwitcher": {
+    "trigger": "Changer de langue (actuellement {language})",
+    "menu": "Langues disponibles"
   }
 }

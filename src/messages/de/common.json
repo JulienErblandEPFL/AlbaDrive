@@ -8,5 +8,9 @@
   "rootMetadata": {
     "title": "AlbaDrive — Albanische Mitfahrgemeinschaft in Europa",
     "description": "Die Reisegemeinschaft der albanischen Diaspora in Europa. Fahrten Genf → Pristina, München → Tirana und mehr."
+  },
+  "localeSwitcher": {
+    "trigger": "Sprache wechseln (aktuell {language})",
+    "menu": "Verfügbare Sprachen"
   }
 }

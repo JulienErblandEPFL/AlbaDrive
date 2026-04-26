@@ -56,5 +56,8 @@
       "range": "Nota duhet të jetë midis 1 dhe 5."
     },
     "comment": { "too_long": "Komenti është shumë i gjatë (maksimumi 1000 karaktere)." }
+  },
+  "locale": {
+    "invalid": "Gjuhë e pavlefshme."
   }
 }

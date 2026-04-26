@@ -52,5 +52,8 @@
       "range": "Rating must be between 1 and 5."
     },
     "comment": { "too_long": "Comment is too long (1000 characters maximum)." }
+  },
+  "locale": {
+    "invalid": "Invalid locale."
   }
 }

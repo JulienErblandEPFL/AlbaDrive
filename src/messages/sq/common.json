@@ -12,5 +12,9 @@
   "rootMetadata": {
     "title": "AlbaDrive — Bashkëudhëtime shqiptare në Evropë",
     "description": "Komuniteti i udhëtimit i diasporës shqiptare në Evropë. Udhëtime Genevë → Prishtinë, Mynih → Tiranë dhe më shumë."
+  },
+  "localeSwitcher": {
+    "trigger": "Ndrysho gjuhën (aktualisht {language})",
+    "menu": "Gjuhët e disponueshme"
   }
 }
