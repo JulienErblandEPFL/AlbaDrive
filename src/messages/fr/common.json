@@ -4,5 +4,9 @@
     "detail": "EEEE d MMMM yyyy 'à' HH'h'mm",
     "tripCard": "EEEE d MMMM 'à' HH'h'mm",
     "metaShort": "d MMM yyyy"
+  },
+  "rootMetadata": {
+    "title": "AlbaDrive — Covoiturage albanais en Europe",
+    "description": "La communauté du voyage albanais en Europe. Trajets Genève → Pristina, München → Tirana et plus encore."
   }
 }

@@ -4,5 +4,9 @@
     "detail": "EEEE d MMMM yyyy 'at' HH:mm",
     "tripCard": "EEEE d MMMM 'at' HH:mm",
     "metaShort": "d MMM yyyy"
+  },
+  "rootMetadata": {
+    "title": "AlbaDrive — Albanian carpooling across Europe",
+    "description": "The travel community of the Albanian diaspora in Europe. Trips Geneva → Pristina, Munich → Tirana and more."
   }
 }

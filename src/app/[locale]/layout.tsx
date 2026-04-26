@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
-import { routing } from "@/i18n/routing";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { routing, type SupportedLocale } from "@/i18n/routing";
 import "../globals.css";
 
 const dmSans = DM_Sans({
@@ -13,11 +13,18 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-export const metadata: Metadata = {
-  title: "AlbaDrive — Covoiturage albanais en Europe",
-  description:
-    "La communauté du voyage albanais en Europe. Trajets Genève → Pristina, München → Tirana et plus encore.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({
+    locale: locale as SupportedLocale,
+    namespace: "common.rootMetadata",
+  });
+  return { title: t("title"), description: t("description") };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

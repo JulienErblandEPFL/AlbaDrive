@@ -8,5 +8,9 @@
     "detail": "EEEE d MMMM yyyy 'në' HH:mm",
     "tripCard": "EEEE d MMMM 'në' HH:mm",
     "metaShort": "d MMM yyyy"
+  },
+  "rootMetadata": {
+    "title": "AlbaDrive — Bashkëudhëtime shqiptare në Evropë",
+    "description": "Komuniteti i udhëtimit i diasporës shqiptare në Evropë. Udhëtime Genevë → Prishtinë, Mynih → Tiranë dhe më shumë."
   }
 }

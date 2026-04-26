@@ -4,5 +4,9 @@
     "detail": "EEEE, d. MMMM yyyy 'um' HH:mm 'Uhr'",
     "tripCard": "EEEE, d. MMMM 'um' HH:mm 'Uhr'",
     "metaShort": "d. MMM yyyy"
+  },
+  "rootMetadata": {
+    "title": "AlbaDrive — Albanische Mitfahrgemeinschaft in Europa",
+    "description": "Die Reisegemeinschaft der albanischen Diaspora in Europa. Fahrten Genf → Pristina, München → Tirana und mehr."
   }
 }
