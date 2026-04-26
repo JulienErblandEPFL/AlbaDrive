@@ -33,7 +33,15 @@
       "min": "Kërkohet të paktën 1 vend",
       "max": "Maksimumi 9 vende"
     },
-    "id": { "invalid": "ID e udhëtimit e pavlefshme." }
+    "id": { "invalid": "ID e udhëtimit e pavlefshme." },
+    "form": {
+      "origin_required": "Ju lutemi zgjidhni një qytet nisjeje",
+      "destination_required": "Ju lutemi zgjidhni një qytet mbërritjeje",
+      "date_required": "Data është e detyrueshme",
+      "time_required": "Ora është e detyrueshme",
+      "same_city": "Qyteti i nisjes dhe i mbërritjes duhet të jenë të ndryshëm",
+      "city_not_recognized": "Qytet i panjohur. Ju lutemi provoni përsëri."
+    }
   },
   "booking": {
     "id": { "invalid": "ID e rezervimit e pavlefshme." },

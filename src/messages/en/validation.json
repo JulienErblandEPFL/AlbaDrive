@@ -29,7 +29,15 @@
       "min": "At least 1 seat required",
       "max": "Maximum 9 seats"
     },
-    "id": { "invalid": "Invalid trip ID." }
+    "id": { "invalid": "Invalid trip ID." },
+    "form": {
+      "origin_required": "Please select a departure city",
+      "destination_required": "Please select an arrival city",
+      "date_required": "Date required",
+      "time_required": "Time required",
+      "same_city": "Departure and arrival cities must be different",
+      "city_not_recognized": "Unrecognized city. Please try again."
+    }
   },
   "booking": {
     "id": { "invalid": "Invalid booking ID." },

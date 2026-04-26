@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useId } from "react";
+import { useTranslations } from "next-intl";
 import { MapPin, X } from "lucide-react";
 import { CITIES } from "@/lib/constants/cities";
 
@@ -32,6 +33,7 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
   const listId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations("trips.city");
 
   const [value, setValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
@@ -143,7 +145,7 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
         {value && (
           <button
             type="button"
-            aria-label="Effacer"
+            aria-label={t("clear")}
             onMouseDown={(e) => {
               e.preventDefault();
               setValue("");
@@ -167,7 +169,7 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
         >
           {!value && (
             <li className="px-4 py-2 text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-              Villes populaires
+              {t("popular")}
             </li>
           )}
 
@@ -175,8 +177,8 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
             <li className="px-4 py-3 text-sm text-stone-500 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-stone-300 shrink-0" aria-hidden="true" />
               <span>
-                Ville non répertoriée —{" "}
-                <span className="text-stone-700 font-medium">vous pouvez quand même chercher</span>
+                {t("notListed")}{" "}
+                <span className="text-stone-700 font-medium">{t("notListedHint")}</span>
               </span>
             </li>
           ) : (

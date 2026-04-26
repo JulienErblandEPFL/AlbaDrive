@@ -1,4 +1,3 @@
-// src/app/(main)/trips/create/CreateTripForm.tsx
 "use client";
 
 import { useState, useTransition } from "react";
@@ -14,32 +13,26 @@ import { createTrip } from "@/app/[locale]/(main)/trips/actions";
 import { citiesByRegion, findCity } from "@/lib/constants/cities";
 
 // ── Client-side form schema (city labels, not LocationJsonb) ────────────────
+// Messages are i18n keys (codes-as-messages pattern); the form translates them
+// via `t(errors.field.message)` at render time.
 
 const formSchema = z
   .object({
-    originLabel: z.string().min(1, "Veuillez sélectionner une ville de départ"),
-    destinationLabel: z.string().min(1, "Veuillez sélectionner une ville d'arrivée"),
-    date: z.string().min(1, "Date requise"),
-    time: z.string().min(1, "Heure requise"),
+    originLabel: z.string().min(1, "validation.trip.form.origin_required"),
+    destinationLabel: z.string().min(1, "validation.trip.form.destination_required"),
+    date: z.string().min(1, "validation.trip.form.date_required"),
+    time: z.string().min(1, "validation.trip.form.time_required"),
     total_seats: z.number().int().min(1).max(9),
     price_per_seat: z.string().optional(),
     vehicle_description: z.string().max(200).optional(),
     notes: z.string().max(500).optional(),
   })
   .refine((d) => d.originLabel !== d.destinationLabel, {
-    message: "La ville de départ et d'arrivée doivent être différentes",
+    message: "validation.trip.form.same_city",
     path: ["destinationLabel"],
   });
 
 type FormData = z.infer<typeof formSchema>;
-
-// ── Step definitions ────────────────────────────────────────────────────────
-
-const STEPS = [
-  { id: 1, label: "Itinéraire", icon: MapPin },
-  { id: 2, label: "Date & Places", icon: Calendar },
-  { id: 3, label: "Détails", icon: Car },
-] as const;
 
 const STEP_FIELDS: Record<number, (keyof FormData)[]> = {
   1: ["originLabel", "destinationLabel"],
@@ -54,10 +47,12 @@ function CitySelect({
   label,
   error,
   required,
+  selectPlaceholder,
   ...props
 }: React.SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
   error?: string;
+  selectPlaceholder: string;
 }) {
   const grouped = citiesByRegion();
 
@@ -83,7 +78,7 @@ function CitySelect({
         ].join(" ")}
         {...props}
       >
-        <option value="">Sélectionner une ville…</option>
+        <option value="">{selectPlaceholder}</option>
         {Object.entries(grouped).map(([region, cities]) => (
           <optgroup key={region} label={region}>
             {cities.map((c) => (
@@ -108,8 +103,15 @@ function CitySelect({
 export function CreateTripForm() {
   const router = useRouter();
   const t = useTranslations();
+  const tCreate = useTranslations("trips.create");
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
+
+  const STEPS = [
+    { id: 1, label: tCreate("step1Label"), icon: MapPin },
+    { id: 2, label: tCreate("step2Label"), icon: Calendar },
+    { id: 3, label: tCreate("step3Label"), icon: Car },
+  ] as const;
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -145,7 +147,7 @@ export function CreateTripForm() {
     const destination = findCity(data.destinationLabel);
 
     if (!origin || !destination) {
-      setError("root", { message: "Ville non reconnue. Veuillez réessayer." });
+      setError("root", { message: t("validation.trip.form.city_not_recognized") });
       return;
     }
 
@@ -190,18 +192,18 @@ export function CreateTripForm() {
         className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 mb-8 transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-        Retour
+        {tCreate("back")}
       </button>
 
       <h1 className="text-2xl font-bold text-stone-900 mb-1">
-        Proposer un trajet
+        {tCreate("title")}
       </h1>
       <p className="text-stone-500 text-sm mb-8">
-        Partagez votre route avec la communauté albanaise.
+        {tCreate("subtitle")}
       </p>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-10" aria-label="Étapes du formulaire">
+      <div className="flex items-center gap-2 mb-10" aria-label={tCreate("stepsLabel")}>
         {STEPS.map(({ id, label, icon: Icon }, i) => {
           const isDone = step > id;
           const isActive = step === id;
@@ -247,9 +249,10 @@ export function CreateTripForm() {
           <div className="flex flex-col gap-5">
             <CitySelect
               id="originLabel"
-              label="Ville de départ"
+              label={tCreate("originLabel")}
               required
-              error={errors.originLabel?.message}
+              selectPlaceholder={tCreate("selectCity")}
+              error={errors.originLabel?.message ? t(errors.originLabel.message) : undefined}
               {...register("originLabel")}
             />
 
@@ -266,9 +269,10 @@ export function CreateTripForm() {
 
             <CitySelect
               id="destinationLabel"
-              label="Ville d'arrivée"
+              label={tCreate("destinationLabel")}
               required
-              error={errors.destinationLabel?.message}
+              selectPlaceholder={tCreate("selectCity")}
+              error={errors.destinationLabel?.message ? t(errors.destinationLabel.message) : undefined}
               {...register("destinationLabel")}
             />
           </div>
@@ -278,19 +282,19 @@ export function CreateTripForm() {
         {step === 2 && (
           <div className="flex flex-col gap-5">
             <Input
-              label="Date du départ"
+              label={tCreate("dateLabel")}
               type="date"
               min={today}
               required
-              error={errors.date?.message}
+              error={errors.date?.message ? t(errors.date.message) : undefined}
               {...register("date")}
             />
 
             <Input
-              label="Heure de départ"
+              label={tCreate("timeLabel")}
               type="time"
               required
-              error={errors.time?.message}
+              error={errors.time?.message ? t(errors.time.message) : undefined}
               {...register("time")}
             />
 
@@ -299,7 +303,7 @@ export function CreateTripForm() {
                 htmlFor="total_seats"
                 className="text-sm font-medium text-stone-700"
               >
-                Nombre de places disponibles{" "}
+                {tCreate("seatsLabel")}{" "}
                 <span className="text-red-700" aria-hidden="true">
                   *
                 </span>
@@ -312,13 +316,13 @@ export function CreateTripForm() {
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                   <option key={n} value={n}>
-                    {n} place{n > 1 ? "s" : ""}
+                    {tCreate("seatsOption", { count: n })}
                   </option>
                 ))}
               </select>
-              {errors.total_seats && (
+              {errors.total_seats?.message && (
                 <p role="alert" className="text-sm text-red-600">
-                  {errors.total_seats.message}
+                  {t(errors.total_seats.message)}
                 </p>
               )}
             </div>
@@ -329,28 +333,26 @@ export function CreateTripForm() {
         {step === 3 && (
           <div className="flex flex-col gap-5">
             <Input
-              label="Prix par siège (optionnel)"
+              label={tCreate("priceLabel")}
               type="number"
               min="0"
               step="0.50"
-              placeholder="ex: 50"
+              placeholder={tCreate("pricePlaceholder")}
               autoComplete="off"
               onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
               helperText={
-                !errors.price_per_seat
-                  ? "Laisser vide si gratuit ou à discuter."
-                  : undefined
+                !errors.price_per_seat ? tCreate("priceHelp") : undefined
               }
-              error={errors.price_per_seat?.message}
+              error={errors.price_per_seat?.message ? t(errors.price_per_seat.message) : undefined}
               {...register("price_per_seat")}
             />
 
             <Input
-              label="Description du véhicule (optionnel)"
+              label={tCreate("vehicleLabel")}
               type="text"
               maxLength={200}
-              placeholder="ex: VW Golf grise, plaque GE"
-              error={errors.vehicle_description?.message}
+              placeholder={tCreate("vehiclePlaceholder")}
+              error={errors.vehicle_description?.message ? t(errors.vehicle_description.message) : undefined}
               {...register("vehicle_description")}
             />
 
@@ -359,19 +361,19 @@ export function CreateTripForm() {
                 htmlFor="notes"
                 className="text-sm font-medium text-stone-700"
               >
-                Notes / Instructions (optionnel)
+                {tCreate("notesLabel")}
               </label>
               <textarea
                 id="notes"
                 rows={3}
                 maxLength={500}
-                placeholder="ex: Point de rendez-vous, stops prévus…"
+                placeholder={tCreate("notesPlaceholder")}
                 className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 text-base resize-none focus:border-red-800 focus:ring-2 focus:ring-red-100 outline-none placeholder:text-stone-400"
                 {...register("notes")}
               />
-              {errors.notes && (
+              {errors.notes?.message && (
                 <p role="alert" className="text-sm text-red-600">
-                  {errors.notes.message}
+                  {t(errors.notes.message)}
                 </p>
               )}
             </div>
@@ -397,7 +399,7 @@ export function CreateTripForm() {
               className="flex-1"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-              Précédent
+              {tCreate("previous")}
             </Button>
           )}
 
@@ -408,7 +410,7 @@ export function CreateTripForm() {
               onClick={goNext}
               className="flex-1"
             >
-              Suivant
+              {tCreate("next")}
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Button>
           ) : (
@@ -419,7 +421,7 @@ export function CreateTripForm() {
               isLoading={isPending}
               onClick={() => handleSubmit(onSubmit)()}
             >
-              Publier le trajet
+              {tCreate("publish")}
             </Button>
           )}
         </div>

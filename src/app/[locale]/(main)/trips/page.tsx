@@ -1,18 +1,25 @@
-// src/app/(main)/trips/page.tsx
 // Public search page — accessible without authentication.
 // searchParams drive filterable, shareable URLs.
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { TripCard } from "./components/TripCard";
 import { SearchBar } from "./components/SearchBar";
 import { MapPin } from "lucide-react";
-import Link from "next/link";
+import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb } from "@/types/database.types";
 
-export const metadata: Metadata = {
-  title: "Trajets disponibles — AlbaDrive",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: SupportedLocale }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "trips.metadata" });
+  return { title: t("searchTitle") };
+}
 
 type SearchParams = {
   from?: string;
@@ -21,11 +28,15 @@ type SearchParams = {
 };
 
 export default async function TripsPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: SupportedLocale }>;
   searchParams: Promise<SearchParams>;
 }) {
+  const { locale } = await params;
   const { from, to, date } = await searchParams;
+  const t = await getTranslations({ locale, namespace: "trips.search" });
 
   const supabase = await createServerClient();
 
@@ -75,11 +86,13 @@ export default async function TripsPage({
           .in("id", driverIds)
       : { data: [] };
 
+  const tCard = await getTranslations({ locale, namespace: "trips.card" });
+
   const driverById = Object.fromEntries(
     (driverProfiles ?? []).map((p) => [
       p.id,
       {
-        name: p.full_name ?? "Conducteur",
+        name: p.full_name ?? tCard("driverFallback"),
         rating_avg: p.driver_rating_avg != null ? Number(p.driver_rating_avg) : 0,
         rating_count: p.driver_rating_count != null ? Number(p.driver_rating_count) : 0,
       },
@@ -87,6 +100,7 @@ export default async function TripsPage({
   );
 
   const isFiltered = !!(from || to || date);
+  const summaryKey = isFiltered ? "summaryFound" : "summaryAvailable";
 
   return (
     <div>
@@ -94,7 +108,7 @@ export default async function TripsPage({
       <div className="relative h-56 sm:h-72 overflow-hidden">
         <Image
           src="/images/pristina.webp"
-          alt="Vue de Pristina, Kosovo"
+          alt={t("headerImageAlt")}
           fill
           priority
           className="object-cover object-center"
@@ -106,10 +120,10 @@ export default async function TripsPage({
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 pb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 drop-shadow-md text-center">
-            Trouver un trajet
+            {t("headerTitle")}
           </h1>
           <p className="text-stone-300 text-sm mb-5 drop-shadow text-center">
-            Le corridor Europe ↔ Balkans
+            {t("headerSubtitle")}
           </p>
           <div className="w-full max-w-2xl">
             <SearchBar from={from} to={to} date={date} glass />
@@ -121,23 +135,7 @@ export default async function TripsPage({
       {/* Results summary */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <p className="text-sm text-stone-500">
-          {isFiltered ? (
-            <>
-              <span className="font-semibold text-stone-700">
-                {browsableTrips.length}
-              </span>{" "}
-              trajet{browsableTrips.length !== 1 ? "s" : ""} trouvé
-              {browsableTrips.length !== 1 ? "s" : ""}
-            </>
-          ) : (
-            <>
-              <span className="font-semibold text-stone-700">
-                {browsableTrips.length}
-              </span>{" "}
-              trajet{browsableTrips.length !== 1 ? "s" : ""} disponible
-              {browsableTrips.length !== 1 ? "s" : ""}
-            </>
-          )}
+          {t(summaryKey, { count: browsableTrips.length })}
         </p>
 
         {isFiltered && (
@@ -145,7 +143,7 @@ export default async function TripsPage({
             href="/trips"
             className="text-xs text-stone-400 hover:text-red-700 transition-colors underline underline-offset-2"
           >
-            Effacer les filtres
+            {t("clearFilters")}
           </Link>
         )}
       </div>
@@ -157,26 +155,26 @@ export default async function TripsPage({
             <MapPin className="w-5 h-5 text-stone-400" aria-hidden="true" />
           </div>
           <p className="text-stone-900 font-semibold mb-1">
-            {isFiltered ? "Aucun résultat" : "Aucun trajet disponible"}
+            {isFiltered ? t("emptyNoResultsTitle") : t("emptyNoTripsTitle")}
           </p>
           <p className="text-stone-500 text-sm mb-6">
             {isFiltered
-              ? "Essayez d'autres critères ou supprimez les filtres."
-              : "Soyez le premier à proposer un trajet sur le corridor."}
+              ? t("emptyNoResultsDescription")
+              : t("emptyNoTripsDescription")}
           </p>
           {isFiltered ? (
             <Link
               href="/trips"
               className="inline-flex items-center h-10 px-5 rounded-xl border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-stone-50 transition-colors"
             >
-              Voir tous les trajets
+              {t("emptyViewAll")}
             </Link>
           ) : (
             <Link
               href={user ? "/trips/create" : "/register"}
               className="inline-flex items-center h-10 px-5 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors"
             >
-              Proposer un trajet
+              {t("emptyPropose")}
             </Link>
           )}
         </div>
@@ -193,7 +191,7 @@ export default async function TripsPage({
                   ? Number(trip.price_per_seat)
                   : null,
               }}
-              driverName={driverById[trip.driver_id]?.name ?? "Conducteur"}
+              driverName={driverById[trip.driver_id]?.name ?? tCard("driverFallback")}
               driverRatingAvg={driverById[trip.driver_id]?.rating_avg ?? 0}
               driverRatingCount={driverById[trip.driver_id]?.rating_count ?? 0}
               currentUserId={user?.id ?? ""}

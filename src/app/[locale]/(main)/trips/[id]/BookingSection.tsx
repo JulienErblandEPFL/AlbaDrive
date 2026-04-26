@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { requestBooking } from "@/app/[locale]/(main)/bookings/actions";
@@ -24,7 +23,6 @@ export function BookingSection({
   isOwnTrip,
   tripPath,
 }: BookingSectionProps) {
-  const router = useRouter();
   const [seats, setSeats] = useState(1);
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -32,24 +30,25 @@ export function BookingSection({
     { type: "success" } | { type: "error"; message: string } | null
   >(null);
   const t = useTranslations();
+  const tDetail = useTranslations("trips.detail");
 
   if (!isAuthenticated) {
     return (
       <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5">
         <p className="text-sm text-stone-600 mb-4">
-          Connectez-vous pour réserver une place sur ce trajet.
+          {tDetail("loginPromptText")}
         </p>
         <Link
           href={`/login?redirect=${encodeURIComponent(tripPath)}`}
           className="flex items-center justify-center gap-2 h-12 w-full rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors duration-150"
         >
           <LogIn className="w-4 h-4" aria-hidden="true" />
-          Se connecter pour réserver
+          {tDetail("loginPromptButton")}
         </Link>
         <p className="text-center text-xs text-stone-400 mt-3">
-          Pas encore de compte ?{" "}
+          {tDetail("noAccount")}{" "}
           <Link href="/register" className="text-red-700 hover:underline">
-            S&apos;inscrire gratuitement
+            {tDetail("registerLink")}
           </Link>
         </p>
       </div>
@@ -60,13 +59,13 @@ export function BookingSection({
     return (
       <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-center">
         <p className="text-sm font-medium text-stone-600">
-          C&apos;est votre trajet.
+          {tDetail("ownTrip")}
         </p>
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1.5 mt-3 text-sm text-red-700 hover:underline"
         >
-          Gérer depuis le tableau de bord →
+          {tDetail("ownTripCta")}
         </Link>
       </div>
     );
@@ -78,16 +77,16 @@ export function BookingSection({
         <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
         <div>
           <p className="text-sm font-semibold text-green-800">
-            Demande envoyée !
+            {tDetail("successTitle")}
           </p>
           <p className="text-xs text-green-700 mt-0.5">
-            Le conducteur examinera votre demande. Vous recevrez une réponse depuis votre tableau de bord.
+            {tDetail("successDescription")}
           </p>
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 mt-3 text-xs text-green-700 font-semibold hover:underline"
           >
-            Voir mes réservations →
+            {tDetail("viewBookings")}
           </Link>
         </div>
       </div>
@@ -114,7 +113,7 @@ export function BookingSection({
   return (
     <div className="bg-white border border-stone-200 rounded-2xl p-5 flex flex-col gap-4">
       <h2 className="text-base font-semibold text-stone-900">
-        Réserver une place
+        {tDetail("bookTitle")}
       </h2>
 
       {/* Seats selector */}
@@ -123,7 +122,7 @@ export function BookingSection({
           htmlFor="booking-seats"
           className="text-sm font-medium text-stone-700"
         >
-          Nombre de places
+          {tDetail("seatsLabel")}
         </label>
         <select
           id="booking-seats"
@@ -133,7 +132,7 @@ export function BookingSection({
         >
           {Array.from({ length: availableSeats }, (_, i) => i + 1).map((n) => (
             <option key={n} value={n}>
-              {n} place{n > 1 ? "s" : ""}
+              {tDetail("seatsOption", { count: n })}
             </option>
           ))}
         </select>
@@ -145,8 +144,8 @@ export function BookingSection({
           htmlFor="booking-message"
           className="text-sm font-medium text-stone-700"
         >
-          Message au conducteur{" "}
-          <span className="text-stone-400 font-normal">(optionnel)</span>
+          {tDetail("messageLabel")}{" "}
+          <span className="text-stone-400 font-normal">{tDetail("messageOptional")}</span>
         </label>
         <textarea
           id="booking-message"
@@ -154,7 +153,7 @@ export function BookingSection({
           maxLength={500}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="ex: Je serai à l'aéroport, j'ai une grande valise…"
+          placeholder={tDetail("messagePlaceholder")}
           className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 text-sm resize-none focus:border-red-800 focus:ring-2 focus:ring-red-100 outline-none placeholder:text-stone-400"
         />
       </div>
@@ -177,7 +176,7 @@ export function BookingSection({
         isLoading={isPending}
         className="w-full"
       >
-        Envoyer la demande
+        {tDetail("submit")}
       </Button>
     </div>
   );

@@ -29,7 +29,15 @@
       "min": "Au moins 1 siège requis",
       "max": "Maximum 9 sièges"
     },
-    "id": { "invalid": "Identifiant de trajet invalide." }
+    "id": { "invalid": "Identifiant de trajet invalide." },
+    "form": {
+      "origin_required": "Veuillez sélectionner une ville de départ",
+      "destination_required": "Veuillez sélectionner une ville d'arrivée",
+      "date_required": "Date requise",
+      "time_required": "Heure requise",
+      "same_city": "La ville de départ et d'arrivée doivent être différentes",
+      "city_not_recognized": "Ville non reconnue. Veuillez réessayer."
+    }
   },
   "booking": {
     "id": { "invalid": "Identifiant de réservation invalide." },

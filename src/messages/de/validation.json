@@ -29,7 +29,15 @@
       "min": "Mindestens 1 Sitzplatz erforderlich",
       "max": "Maximal 9 Sitzplätze"
     },
-    "id": { "invalid": "Ungültige Fahrt-ID." }
+    "id": { "invalid": "Ungültige Fahrt-ID." },
+    "form": {
+      "origin_required": "Bitte wählen Sie eine Abfahrtsstadt",
+      "destination_required": "Bitte wählen Sie eine Ankunftsstadt",
+      "date_required": "Datum erforderlich",
+      "time_required": "Uhrzeit erforderlich",
+      "same_city": "Abfahrts- und Ankunftsstadt müssen unterschiedlich sein",
+      "city_not_recognized": "Stadt nicht erkannt. Bitte versuchen Sie es erneut."
+    }
   },
   "booking": {
     "id": { "invalid": "Ungültige Buchungs-ID." },

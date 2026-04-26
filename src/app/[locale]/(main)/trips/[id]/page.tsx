@@ -1,4 +1,3 @@
-// src/app/(main)/trips/[id]/page.tsx
 // Public trip detail page — visible to all visitors.
 // Booking CTA is conditional on authentication and ownership.
 import type { Metadata } from "next";
@@ -27,15 +26,16 @@ export async function generateMetadata({
     .is("deleted_at", null)
     .single();
 
-  if (!trip) return { title: "Trajet introuvable — AlbaDrive" };
+  const tMeta = await getTranslations({ locale, namespace: "trips.metadata" });
+  if (!trip) return { title: tMeta("detailFallbackTitle") };
 
-  const t = await getTranslations({ locale, namespace: "common.dateFormat" });
+  const tDate = await getTranslations({ locale, namespace: "common.dateFormat" });
   const origin = (trip.origin as unknown as LocationJsonb).label;
   const destination = (trip.destination as unknown as LocationJsonb).label;
-  const date = formatLocalizedDate(trip.departure_at, t("metaShort"), locale);
+  const date = formatLocalizedDate(trip.departure_at, tDate("metaShort"), locale);
 
   return {
-    title: `${origin} → ${destination} · ${date} — AlbaDrive`,
+    title: tMeta("detailTitle", { origin, destination, date }),
   };
 }
 
@@ -76,15 +76,17 @@ export default async function TripDetailPage({
     status: rawTrip.status as TripStatus,
   };
 
-  const driverName = driver?.full_name ?? "Conducteur";
+  const t = await getTranslations({ locale, namespace: "trips.detail" });
+  const tDate = await getTranslations({ locale, namespace: "common.dateFormat" });
+
+  const driverName = driver?.full_name ?? t("driverFallback");
   const isCancelled = trip.status === "cancelled" || trip.status === "completed";
   const isOwnTrip = user?.id === trip.driver_id;
   const isFull = trip.available_seats === 0;
 
-  const t = await getTranslations({ locale, namespace: "common.dateFormat" });
   const formattedDate = formatLocalizedDate(
     trip.departure_at,
-    t("detail"),
+    tDate("detail"),
     locale,
   );
 
@@ -98,7 +100,7 @@ export default async function TripDetailPage({
         className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-        Tous les trajets
+        {t("back")}
       </Link>
 
       <div className="flex flex-col gap-6">
@@ -135,9 +137,10 @@ export default async function TripDetailPage({
             <div className="flex items-center gap-2.5 bg-stone-50 rounded-xl px-4 py-3">
               <Users className="w-4 h-4 text-stone-400 shrink-0" aria-hidden="true" />
               <span className="text-sm text-stone-700">
-                {trip.available_seats}/{trip.total_seats} place
-                {trip.total_seats !== 1 ? "s" : ""} disponible
-                {trip.available_seats !== 1 ? "s" : ""}
+                {t("seatsAvailable", {
+                  available: trip.available_seats,
+                  total: trip.total_seats,
+                })}
               </span>
             </div>
 
@@ -145,8 +148,8 @@ export default async function TripDetailPage({
               <Euro className="w-4 h-4 text-stone-400 shrink-0" aria-hidden="true" />
               <span className="text-sm text-stone-700">
                 {trip.price_per_seat && trip.price_per_seat > 0
-                  ? `${trip.price_per_seat} CHF / siège`
-                  : "Gratuit"}
+                  ? t("pricePerSeat", { price: trip.price_per_seat })
+                  : t("free")}
               </span>
             </div>
 
@@ -174,7 +177,7 @@ export default async function TripDetailPage({
               </span>
             </div>
             <div>
-              <p className="text-xs text-stone-400">Conducteur</p>
+              <p className="text-xs text-stone-400">{t("driverLabel")}</p>
               <p className="text-sm font-semibold text-stone-900">{driverName}</p>
               {driver?.driver_rating_count != null && Number(driver.driver_rating_count) >= 3 ? (
                 <StarRating
@@ -186,7 +189,7 @@ export default async function TripDetailPage({
                 />
               ) : (
                 <span className="mt-1 text-xs font-medium text-red-800 bg-red-50 rounded-full px-2 py-0.5 border border-red-100 inline-block">
-                  Nouveau conducteur
+                  {t("newDriver")}
                 </span>
               )}
             </div>
@@ -197,20 +200,20 @@ export default async function TripDetailPage({
         {isCancelled ? (
           <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-center">
             <p className="text-sm font-medium text-stone-500">
-              Ce trajet n&apos;est plus disponible.
+              {t("cancelled")}
             </p>
           </div>
         ) : isFull && !isOwnTrip ? (
           <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-center">
             <p className="text-sm font-medium text-stone-600">
-              Ce trajet est complet.
+              {t("full")}
             </p>
             <Link
               href="/trips"
               className="inline-flex items-center gap-1.5 mt-3 text-sm text-red-700 hover:underline"
             >
               <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-              Voir d&apos;autres trajets
+              {t("viewOthers")}
             </Link>
           </div>
         ) : (

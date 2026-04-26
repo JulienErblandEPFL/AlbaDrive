@@ -1,7 +1,7 @@
-// src/app/(main)/trips/components/SearchBar.tsx
 // Server Component wrapper — <form method="get"> for shareable URLs + progressive enhancement.
 // City inputs use CityCombobox (client) for fuzzy search and suggestions.
 import { Search } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { CityCombobox } from "./CityCombobox";
 
 interface SearchBarProps {
@@ -11,8 +11,14 @@ interface SearchBarProps {
   glass?: boolean; // glassmorphism variant for photo backgrounds
 }
 
-export function SearchBar({ from = "", to = "", date = "", glass = false }: SearchBarProps) {
+export async function SearchBar({
+  from = "",
+  to = "",
+  date = "",
+  glass = false,
+}: SearchBarProps) {
   const today = new Date().toISOString().split("T")[0];
+  const t = await getTranslations("trips.searchBar");
 
   const cardClass = glass
     ? "bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-xl"
@@ -33,8 +39,8 @@ export function SearchBar({ from = "", to = "", date = "", glass = false }: Sear
         <div className="flex-1">
           <CityCombobox
             name="from"
-            label="Départ"
-            placeholder="ex: Genève"
+            label={t("originLabel")}
+            placeholder={t("originPlaceholder")}
             defaultValue={from}
             glass={glass}
           />
@@ -44,8 +50,8 @@ export function SearchBar({ from = "", to = "", date = "", glass = false }: Sear
         <div className="flex-1">
           <CityCombobox
             name="to"
-            label="Arrivée"
-            placeholder="ex: Pristina"
+            label={t("destinationLabel")}
+            placeholder={t("destinationPlaceholder")}
             defaultValue={to}
             glass={glass}
           />
@@ -54,7 +60,7 @@ export function SearchBar({ from = "", to = "", date = "", glass = false }: Sear
         {/* Date */}
         <div className="sm:w-44 flex flex-col gap-1.5">
           <label htmlFor="search-date" className={labelClass}>
-            Date
+            {t("dateLabel")}
           </label>
           <input
             id="search-date"
@@ -79,7 +85,7 @@ export function SearchBar({ from = "", to = "", date = "", glass = false }: Sear
             className="h-12 px-6 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 active:bg-red-950 transition-colors duration-150 flex items-center gap-2 whitespace-nowrap cursor-pointer min-w-[44px]"
           >
             <Search className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Rechercher</span>
+            <span className="hidden sm:inline">{t("submit")}</span>
           </button>
         </div>
       </div>

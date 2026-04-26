@@ -41,6 +41,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
   const [isPending, startTransition] = useTransition();
   const formatDate = useFormatLocalizedDate();
   const t = useTranslations();
+  const tCard = useTranslations("trips.card");
 
   const formattedDate = formatDate(trip.departure_at, "tripCard");
 
@@ -88,17 +89,15 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-stone-400" aria-hidden="true" />
-            {trip.available_seats} place
-            {trip.available_seats !== 1 ? "s" : ""} disponible
-            {trip.available_seats !== 1 ? "s" : ""}
+            {tCard("seats", { count: trip.available_seats })}
           </span>
           {trip.price_per_seat != null && trip.price_per_seat > 0 ? (
             <span className="flex items-center gap-1.5">
               <Euro className="w-3.5 h-3.5 text-stone-400" aria-hidden="true" />
-              {trip.price_per_seat} CHF / siège
+              {tCard("pricePerSeat", { price: trip.price_per_seat })}
             </span>
           ) : (
-            <span className="text-green-700 font-medium">Gratuit</span>
+            <span className="text-green-700 font-medium">{tCard("free")}</span>
           )}
         </div>
 
@@ -111,7 +110,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
               </span>
             </div>
             <span>
-              Conducteur :{" "}
+              {tCard("driverPrefix")}{" "}
               <span className="font-medium text-stone-600">{driverName}</span>
             </span>
           </div>
@@ -119,7 +118,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
             <StarRating mode="display" value={driverRatingAvg} count={driverRatingCount} size="sm" />
           ) : (
             <span className="text-[10px] font-medium text-red-800 bg-red-50 rounded-full px-2 py-0.5 border border-red-100">
-              Nouveau conducteur
+              {tCard("newDriver")}
             </span>
           )}
         </div>
@@ -135,7 +134,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
         {/* Success message */}
         {result?.type === "success" && (
           <div className="mt-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-            ✓ Demande envoyée ! Le conducteur sera notifié.
+            {tCard("successMessage")}
           </div>
         )}
 
@@ -155,12 +154,12 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
             // L'utilisateur est le conducteur de ce trajet
             <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-stone-100 rounded-xl">
               <span className="w-2 h-2 rounded-full bg-red-700 shrink-0" aria-hidden="true" />
-              <span className="text-xs font-semibold text-stone-600">Votre trajet</span>
+              <span className="text-xs font-semibold text-stone-600">{tCard("yourTripBadge")}</span>
               <Link
                 href={`/trips/${trip.id}`}
                 className="ml-auto text-xs text-stone-400 hover:text-red-700 transition-colors"
               >
-                Voir →
+                {tCard("viewLink")}
               </Link>
             </div>
           ) : currentUserId ? (
@@ -170,7 +169,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
               className="mt-4 w-full flex items-center justify-between px-4 h-11 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 active:bg-red-950 transition-colors duration-150 cursor-pointer"
               aria-expanded={isFormOpen}
             >
-              <span>Réserver une place</span>
+              <span>{tCard("bookButton")}</span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${isFormOpen ? "rotate-180" : ""}`}
                 aria-hidden="true"
@@ -183,7 +182,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
                 href={`/trips/${trip.id}`}
                 className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors duration-150"
               >
-                Voir le trajet
+                {tCard("viewTripButton")}
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
             </div>
@@ -203,7 +202,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
               htmlFor={`seats-${trip.id}`}
               className="text-sm font-medium text-stone-700"
             >
-              Nombre de places
+              {tCard("seatsLabel")}
             </label>
             <select
               id={`seats-${trip.id}`}
@@ -216,7 +215,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
                 (_, i) => i + 1
               ).map((n) => (
                 <option key={n} value={n}>
-                  {n} place{n > 1 ? "s" : ""}
+                  {tCard("seatsOption", { count: n })}
                 </option>
               ))}
             </select>
@@ -228,8 +227,8 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
               htmlFor={`msg-${trip.id}`}
               className="text-sm font-medium text-stone-700"
             >
-              Message au conducteur{" "}
-              <span className="text-stone-400 font-normal">(optionnel)</span>
+              {tCard("messageLabel")}{" "}
+              <span className="text-stone-400 font-normal">{tCard("messageOptional")}</span>
             </label>
             <textarea
               id={`msg-${trip.id}`}
@@ -237,7 +236,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
               maxLength={500}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="ex: Je viens de l'aéroport, j'ai une valise…"
+              placeholder={tCard("messagePlaceholder")}
               className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 text-sm resize-none focus:border-red-800 focus:ring-2 focus:ring-red-100 outline-none placeholder:text-stone-400"
             />
           </div>
@@ -259,7 +258,7 @@ export function TripCard({ trip, driverName, driverRatingAvg, driverRatingCount,
             isLoading={isPending}
             className="w-full"
           >
-            Envoyer la demande
+            {tCard("submit")}
           </Button>
         </div>
       </div>
