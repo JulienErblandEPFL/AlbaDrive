@@ -1,1 +1,56 @@
-{}
+{
+  "_meta": {
+    "review": "needs-native-speaker-review"
+  },
+  "metadata": {
+    "title": "Paneli — AlbaDrive"
+  },
+  "page": {
+    "greeting": "Përshëndetje, {firstName}!",
+    "subtitle": "Paneli juaj i AlbaDrive",
+    "createCta": "+ Propozo",
+    "passengerFallback": "Pasagjer",
+    "driverFallback": "Shofer"
+  },
+  "tabs": {
+    "ariaLabel": "Paneli",
+    "driver": "Udhëtimet e mia",
+    "passenger": "Kërkesat e mia"
+  },
+  "empty": {
+    "driverTitle": "Asnjë udhëtim i propozuar",
+    "driverDescription": "Ndani rrugën tuaj të ardhshme me komunitetin.",
+    "driverCta": "Propozo një udhëtim",
+    "passengerTitle": "Asnjë rezervim",
+    "passengerDescription": "Gjeni një udhëtim të disponueshëm dhe rezervoni një vend.",
+    "passengerCta": "Shiko udhëtimet"
+  },
+  "driverCard": {
+    "seatsAvailable": "{available}/{total} vende të lira",
+    "seats": "{count, plural, one {# vend} other {# vende}}",
+    "pricePerSeat": "{price} CHF / vend",
+    "requestsHeader": "Kërkesat ({count})",
+    "noRequests": "Asnjë kërkesë për momentin",
+    "cancelTrip": "Anulo këtë udhëtim",
+    "confirmCancelTrip": "Anulo këtë udhëtim? Të gjitha rezervimet aktive do të anulohen.",
+    "confirmAccept": "Pranoni kërkesën e {name}?",
+    "confirmDecline": "Refuzoni kërkesën e {name}?",
+    "newPassenger": "Pasagjer i ri",
+    "acceptLabel": "Prano {name}",
+    "declineLabel": "Refuzo {name}",
+    "accept": "Prano",
+    "reviewSection": "Vlerësoni pasagjerët",
+    "reviewButton": "Lini një vlerësim për {name}"
+  },
+  "passengerCard": {
+    "seats": "{count, plural, one {# vend} other {# vende}}",
+    "driverPrefix": "Shoferi:",
+    "tripCancelledTitle": "Shoferi juaj e ka anuluar këtë udhëtim.",
+    "tripCancelledDescription": "Rezervimi juaj u anulua automatikisht. Mund të kërkoni një udhëtim tjetër.",
+    "acceptedNotice": "✓ Rezervimi u konfirmua! Kontaktoni shoferin në WhatsApp.",
+    "whatsappButton": "Kontaktoni në WhatsApp",
+    "cancelBooking": "Anulo rezervimin tim",
+    "confirmCancel": "Anulo rezervimin tuaj?",
+    "reviewButton": "Lini një vlerësim për shoferin"
+  }
+}

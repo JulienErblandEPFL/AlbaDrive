@@ -1,1 +1,53 @@
-{}
+{
+  "metadata": {
+    "title": "Tableau de bord — AlbaDrive"
+  },
+  "page": {
+    "greeting": "Bonjour, {firstName} !",
+    "subtitle": "Votre tableau de bord AlbaDrive",
+    "createCta": "+ Proposer",
+    "passengerFallback": "Passager",
+    "driverFallback": "Conducteur"
+  },
+  "tabs": {
+    "ariaLabel": "Tableau de bord",
+    "driver": "Mes trajets",
+    "passenger": "Mes demandes"
+  },
+  "empty": {
+    "driverTitle": "Aucun trajet proposé",
+    "driverDescription": "Partagez votre prochaine route avec la communauté.",
+    "driverCta": "Proposer un trajet",
+    "passengerTitle": "Aucune réservation",
+    "passengerDescription": "Trouvez un trajet disponible et réservez une place.",
+    "passengerCta": "Voir les trajets"
+  },
+  "driverCard": {
+    "seatsAvailable": "{available}/{total} places dispo",
+    "seats": "{count, plural, one {# siège} other {# sièges}}",
+    "pricePerSeat": "{price} CHF / siège",
+    "requestsHeader": "Demandes ({count})",
+    "noRequests": "Aucune demande pour l'instant",
+    "cancelTrip": "Annuler ce trajet",
+    "confirmCancelTrip": "Annuler ce trajet ? Toutes les réservations en cours seront annulées.",
+    "confirmAccept": "Accepter la demande de {name} ?",
+    "confirmDecline": "Refuser la demande de {name} ?",
+    "newPassenger": "Nouveau passager",
+    "acceptLabel": "Accepter {name}",
+    "declineLabel": "Refuser {name}",
+    "accept": "Accepter",
+    "reviewSection": "Évaluer les passagers",
+    "reviewButton": "Laisser un avis sur {name}"
+  },
+  "passengerCard": {
+    "seats": "{count, plural, one {# siège} other {# sièges}}",
+    "driverPrefix": "Conducteur :",
+    "tripCancelledTitle": "Votre chauffeur a annulé ce trajet.",
+    "tripCancelledDescription": "Votre réservation a été automatiquement annulée. Vous pouvez chercher un autre trajet.",
+    "acceptedNotice": "✓ Réservation confirmée ! Contactez le conducteur sur WhatsApp.",
+    "whatsappButton": "Contacter sur WhatsApp",
+    "cancelBooking": "Annuler ma réservation",
+    "confirmCancel": "Annuler votre réservation ?",
+    "reviewButton": "Laisser un avis sur le conducteur"
+  }
+}

@@ -1,11 +1,11 @@
-// src/app/(main)/dashboard/DashboardTabs.tsx
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Car, Ticket } from "lucide-react";
 import { DriverTripCard, type DriverTripItem } from "./DriverTripCard";
 import { PassengerBookingCard, type PassengerBookingItem } from "./PassengerBookingCard";
-import Link from "next/link";
 
 interface DashboardTabsProps {
   driverTrips: DriverTripItem[];
@@ -49,6 +49,8 @@ export function DashboardTabs({
   passengerBookings,
 }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>("driver");
+  const tTabs = useTranslations("dashboard.tabs");
+  const tEmpty = useTranslations("dashboard.empty");
 
   const pendingCount = passengerBookings.filter(
     (b) => b.status === "pending"
@@ -58,30 +60,20 @@ export function DashboardTabs({
     0
   );
 
+  const tabs = [
+    { id: "driver" as Tab, label: tTabs("driver"), icon: Car, badge: pendingDriverCount },
+    { id: "passenger" as Tab, label: tTabs("passenger"), icon: Ticket, badge: pendingCount },
+  ];
+
   return (
     <div>
       {/* Tab navigation */}
       <div
         className="flex gap-1 p-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl mb-6"
         role="tablist"
-        aria-label="Tableau de bord"
+        aria-label={tTabs("ariaLabel")}
       >
-        {(
-          [
-            {
-              id: "driver" as Tab,
-              label: "Mes trajets",
-              icon: Car,
-              badge: pendingDriverCount,
-            },
-            {
-              id: "passenger" as Tab,
-              label: "Mes demandes",
-              icon: Ticket,
-              badge: pendingCount,
-            },
-          ] as const
-        ).map(({ id, label, icon: Icon, badge }) => (
+        {tabs.map(({ id, label, icon: Icon, badge }) => (
           <button
             key={id}
             role="tab"
@@ -116,9 +108,9 @@ export function DashboardTabs({
         {driverTrips.length === 0 ? (
           <EmptyState
             icon={Car}
-            title="Aucun trajet proposé"
-            description="Partagez votre prochaine route avec la communauté."
-            cta="Proposer un trajet"
+            title={tEmpty("driverTitle")}
+            description={tEmpty("driverDescription")}
+            cta={tEmpty("driverCta")}
             ctaHref="/trips/create"
           />
         ) : (
@@ -140,9 +132,9 @@ export function DashboardTabs({
         {passengerBookings.length === 0 ? (
           <EmptyState
             icon={Ticket}
-            title="Aucune réservation"
-            description="Trouvez un trajet disponible et réservez une place."
-            cta="Voir les trajets"
+            title={tEmpty("passengerTitle")}
+            description={tEmpty("passengerDescription")}
+            cta={tEmpty("passengerCta")}
             ctaHref="/trips"
           />
         ) : (

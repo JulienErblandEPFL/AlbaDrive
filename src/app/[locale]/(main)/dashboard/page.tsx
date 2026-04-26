@@ -3,19 +3,28 @@
 // interactive rendering to the DashboardTabs Client Component.
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { DashboardTabs } from "./DashboardTabs";
 import type { DriverTripItem, BookingItem } from "./DriverTripCard";
 import type { PassengerBookingItem } from "./PassengerBookingCard";
 import type { LocationJsonb, BookingStatus, TripStatus, ReviewSummary } from "@/types/database.types";
 import { getPassengerReviewSummary, getDriverReviewDetails } from "@/app/[locale]/(main)/reviews/actions";
-import Link from "next/link";
+import type { SupportedLocale } from "@/i18n/routing";
 
-export const metadata: Metadata = {
-  title: "Tableau de bord — AlbaDrive",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: SupportedLocale }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "dashboard.metadata" });
+  return { title: t("title") };
+}
 
 export default async function DashboardPage() {
+  const t = await getTranslations("dashboard.page");
   const supabase = await createServerClient();
 
   const {
@@ -154,7 +163,7 @@ export default async function DashboardPage() {
       .map((b) => ({
         id: b.id,
         passenger_id: b.passenger_id,
-        passenger_name: nameById[b.passenger_id] ?? "Passager",
+        passenger_name: nameById[b.passenger_id] ?? t("passengerFallback"),
         seats_requested: b.seats_requested,
         status: b.status as BookingStatus,
         passenger_message: b.passenger_message,
@@ -196,7 +205,7 @@ export default async function DashboardPage() {
           status: trip.status as TripStatus,
           driver_id: trip.driver_id,
         },
-        driver_name: nameById[trip.driver_id] ?? "Conducteur",
+        driver_name: nameById[trip.driver_id] ?? t("driverFallback"),
         driver_review_summary: driverReviewsById[trip.driver_id] ?? null,
       } satisfies PassengerBookingItem;
     })
@@ -230,17 +239,17 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white drop-shadow-sm">
-              Bonjour, {firstName} !
+              {t("greeting", { firstName })}
             </h1>
             <p className="text-white/60 text-sm mt-0.5">
-              Votre tableau de bord AlbaDrive
+              {t("subtitle")}
             </p>
           </div>
           <Link
             href="/trips/create"
             className="shrink-0 flex items-center gap-1.5 h-10 px-4 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-600 transition-colors duration-150 whitespace-nowrap shadow-lg"
           >
-            + Proposer
+            {t("createCta")}
           </Link>
         </div>
 

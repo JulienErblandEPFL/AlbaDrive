@@ -1,1 +1,53 @@
-{}
+{
+  "metadata": {
+    "title": "Dashboard — AlbaDrive"
+  },
+  "page": {
+    "greeting": "Hello, {firstName}!",
+    "subtitle": "Your AlbaDrive dashboard",
+    "createCta": "+ Offer",
+    "passengerFallback": "Passenger",
+    "driverFallback": "Driver"
+  },
+  "tabs": {
+    "ariaLabel": "Dashboard",
+    "driver": "My trips",
+    "passenger": "My requests"
+  },
+  "empty": {
+    "driverTitle": "No trips offered",
+    "driverDescription": "Share your next route with the community.",
+    "driverCta": "Offer a trip",
+    "passengerTitle": "No bookings",
+    "passengerDescription": "Find an available trip and book a seat.",
+    "passengerCta": "View trips"
+  },
+  "driverCard": {
+    "seatsAvailable": "{available}/{total} seats available",
+    "seats": "{count, plural, one {# seat} other {# seats}}",
+    "pricePerSeat": "{price} CHF / seat",
+    "requestsHeader": "Requests ({count})",
+    "noRequests": "No requests yet",
+    "cancelTrip": "Cancel this trip",
+    "confirmCancelTrip": "Cancel this trip? All active bookings will be cancelled.",
+    "confirmAccept": "Accept {name}'s request?",
+    "confirmDecline": "Decline {name}'s request?",
+    "newPassenger": "New passenger",
+    "acceptLabel": "Accept {name}",
+    "declineLabel": "Decline {name}",
+    "accept": "Accept",
+    "reviewSection": "Rate passengers",
+    "reviewButton": "Leave a review for {name}"
+  },
+  "passengerCard": {
+    "seats": "{count, plural, one {# seat} other {# seats}}",
+    "driverPrefix": "Driver:",
+    "tripCancelledTitle": "Your driver cancelled this trip.",
+    "tripCancelledDescription": "Your booking was automatically cancelled. You can search for another trip.",
+    "acceptedNotice": "✓ Booking confirmed! Contact the driver on WhatsApp.",
+    "whatsappButton": "Contact on WhatsApp",
+    "cancelBooking": "Cancel my booking",
+    "confirmCancel": "Cancel your booking?",
+    "reviewButton": "Leave a review for the driver"
+  }
+}

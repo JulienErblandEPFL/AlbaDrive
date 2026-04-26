@@ -51,14 +51,15 @@ interface DriverTripCardProps {
   trip: DriverTripItem;
 }
 
-function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string }) {
+function BookingRow({ booking }: { booking: BookingItem; tripId: string }) {
   const router = useRouter();
   const [isAccepting, startAccept] = useTransition();
   const [isCancelling, startCancel] = useTransition();
   const t = useTranslations();
+  const tCard = useTranslations("dashboard.driverCard");
 
   function handleAccept() {
-    if (!window.confirm(`Accepter la demande de ${booking.passenger_name} ?`)) return;
+    if (!window.confirm(tCard("confirmAccept", { name: booking.passenger_name }))) return;
     startAccept(async () => {
       const result = await acceptBooking({ booking_id: booking.id });
       if (result.success) {
@@ -70,7 +71,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
   }
 
   function handleDecline() {
-    if (!window.confirm(`Refuser la demande de ${booking.passenger_name} ?`)) return;
+    if (!window.confirm(tCard("confirmDecline", { name: booking.passenger_name }))) return;
     startCancel(async () => {
       // We cancel the booking from the driver's side
       const result = await cancelBooking({ booking_id: booking.id });
@@ -102,8 +103,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
               {booking.passenger_name}
             </span>
             <span className="text-xs text-stone-400">
-              {booking.seats_requested} siège
-              {booking.seats_requested !== 1 ? "s" : ""}
+              {tCard("seats", { count: booking.seats_requested })}
             </span>
             <BookingStatusBadge status={booking.status} />
             {booking.passenger_review_summary && booking.passenger_review_summary.count >= 3 ? (
@@ -115,7 +115,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
               />
             ) : booking.passenger_review_summary ? (
               <span className="text-[10px] font-medium text-stone-500 bg-stone-100 rounded-full px-2 py-0.5">
-                Nouveau passager
+                {tCard("newPassenger")}
               </span>
             ) : null}
           </div>
@@ -148,7 +148,7 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
             variant="secondary"
             onClick={handleDecline}
             isLoading={isCancelling}
-            aria-label={`Refuser ${booking.passenger_name}`}
+            aria-label={tCard("declineLabel", { name: booking.passenger_name })}
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
           </Button>
@@ -158,10 +158,10 @@ function BookingRow({ booking, tripId }: { booking: BookingItem; tripId: string 
             variant="primary"
             onClick={handleAccept}
             isLoading={isAccepting}
-            aria-label={`Accepter ${booking.passenger_name}`}
+            aria-label={tCard("acceptLabel", { name: booking.passenger_name })}
           >
             <UserCheck className="w-3.5 h-3.5" aria-hidden="true" />
-            Accepter
+            {tCard("accept")}
           </Button>
         </div>
       )}
@@ -175,6 +175,8 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
   const [reviewTarget, setReviewTarget] = useState<BookingItem | null>(null);
   const formatDate = useFormatLocalizedDate();
   const t = useTranslations();
+  const tCard = useTranslations("dashboard.driverCard");
+  const tReviewee = useTranslations("reviews.revieweeLabel");
 
   const formattedDate = formatDate(trip.departure_at, "cardDate");
 
@@ -183,12 +185,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
   const canCancel = !["cancelled", "completed"].includes(trip.status);
 
   function handleCancelTrip() {
-    if (
-      !window.confirm(
-        "Annuler ce trajet ? Toutes les réservations en cours seront annulées."
-      )
-    )
-      return;
+    if (!window.confirm(tCard("confirmCancelTrip"))) return;
     startCancel(async () => {
       const result = await cancelTrip({ trip_id: trip.id });
       if (result.success) {
@@ -229,12 +226,12 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
-            {trip.available_seats}/{trip.total_seats} places dispo
+            {tCard("seatsAvailable", { available: trip.available_seats, total: trip.total_seats })}
           </span>
           {trip.price_per_seat != null && trip.price_per_seat > 0 && (
             <span className="flex items-center gap-1">
               <Euro className="w-3.5 h-3.5" aria-hidden="true" />
-              {trip.price_per_seat} CHF / siège
+              {tCard("pricePerSeat", { price: trip.price_per_seat })}
             </span>
           )}
         </div>
@@ -244,7 +241,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
       {trip.bookings.length > 0 && (
         <div className="border-t border-stone-100 px-5">
           <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide py-3">
-            Demandes ({trip.bookings.length})
+            {tCard("requestsHeader", { count: trip.bookings.length })}
           </p>
 
           {/* Pending first */}
@@ -268,7 +265,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
       {trip.bookings.length === 0 && trip.status === "open" && (
         <div className="border-t border-stone-100 px-5 py-4">
           <p className="text-xs text-stone-400 text-center">
-            Aucune demande pour l&apos;instant
+            {tCard("noRequests")}
           </p>
         </div>
       )}
@@ -284,7 +281,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
             isLoading={isCancelling}
             className="text-red-700 hover:text-red-800 hover:bg-red-50 text-xs"
           >
-            Annuler ce trajet
+            {tCard("cancelTrip")}
           </Button>
         </div>
       )}
@@ -294,7 +291,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
         trip.bookings.some((b) => b.status === "accepted") && (
           <div className="border-t border-stone-100 px-5 py-3 flex flex-col gap-2">
             <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
-              Évaluer les passagers
+              {tCard("reviewSection")}
             </p>
             {trip.bookings
               .filter((b) => b.status === "accepted")
@@ -307,7 +304,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
                   onClick={() => setReviewTarget(b)}
                   className="w-full justify-start"
                 >
-                  Laisser un avis sur {b.passenger_name}
+                  {tCard("reviewButton", { name: b.passenger_name })}
                 </Button>
               ))}
           </div>
@@ -318,7 +315,7 @@ export function DriverTripCard({ trip }: DriverTripCardProps) {
           tripId={trip.id}
           revieweeId={reviewTarget.passenger_id}
           revieweeName={reviewTarget.passenger_name}
-          revieweeLabel="votre passager"
+          revieweeLabel={tReviewee("passenger")}
           isOpen={true}
           onClose={() => setReviewTarget(null)}
           onSubmitted={() => router.refresh()}

@@ -53,6 +53,8 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   const [isReviewOpen, setReviewOpen] = useState(false);
   const formatDate = useFormatLocalizedDate();
   const t = useTranslations();
+  const tCard = useTranslations("dashboard.passengerCard");
+  const tReviewee = useTranslations("reviews.revieweeLabel");
 
   const formattedDate = formatDate(booking.trip.departure_at, "cardDate");
 
@@ -61,7 +63,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
   const canCancel = ["pending", "accepted"].includes(booking.status);
 
   function handleCancel() {
-    if (!window.confirm("Annuler votre réservation ?")) return;
+    if (!window.confirm(tCard("confirmCancel"))) return;
     startCancel(async () => {
       const result = await cancelBooking({ booking_id: booking.id });
       if (result.success) {
@@ -128,8 +130,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3.5 h-3.5" aria-hidden="true" />
-            {booking.seats_requested} siège
-            {booking.seats_requested !== 1 ? "s" : ""}
+            {tCard("seats", { count: booking.seats_requested })}
           </span>
         </div>
 
@@ -140,7 +141,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
               {booking.driver_name[0]?.toUpperCase() ?? "?"}
             </span>
           </div>
-          Conducteur :{" "}
+          {tCard("driverPrefix")}{" "}
           <span className="font-medium text-stone-600">{booking.driver_name}</span>
           {isAccepted && booking.driver_review_summary && booking.driver_review_summary.count >= 3 && (
             <StarRating
@@ -183,10 +184,10 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
             />
             <div>
               <p className="text-xs font-semibold text-amber-800">
-                Votre chauffeur a annulé ce trajet.
+                {tCard("tripCancelledTitle")}
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                Votre réservation a été automatiquement annulée. Vous pouvez chercher un autre trajet.
+                {tCard("tripCancelledDescription")}
               </p>
             </div>
           </div>
@@ -196,7 +197,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
         {isAccepted && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-3">
             <p className="text-xs text-green-700 font-medium mb-2">
-              ✓ Réservation confirmée ! Contactez le conducteur sur WhatsApp.
+              {tCard("acceptedNotice")}
             </p>
             {waError && (
               <p role="alert" className="text-xs text-red-600 mb-2">
@@ -212,7 +213,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
               isLoading={isLoadingWA}
             >
               <WhatsAppIcon />
-              Contacter sur WhatsApp
+              {tCard("whatsappButton")}
             </Button>
           </div>
         )}
@@ -227,7 +228,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
             isLoading={isCancelling}
             className="text-stone-500 hover:text-red-700 text-xs"
           >
-            Annuler ma réservation
+            {tCard("cancelBooking")}
           </Button>
         )}
 
@@ -241,7 +242,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
               onClick={() => setReviewOpen(true)}
               className="w-full"
             >
-              Laisser un avis sur le conducteur
+              {tCard("reviewButton")}
             </Button>
           </div>
         )}
@@ -251,7 +252,7 @@ export function PassengerBookingCard({ booking }: PassengerBookingCardProps) {
         tripId={booking.trip.id}
         revieweeId={booking.trip.driver_id}
         revieweeName={booking.driver_name}
-        revieweeLabel="votre conducteur"
+        revieweeLabel={tReviewee("driver")}
         isOpen={isReviewOpen}
         onClose={() => setReviewOpen(false)}
         onSubmitted={() => router.refresh()}
