@@ -16,6 +16,7 @@ import { completeProfile } from "./actions";
 export function CompleteProfileForm() {
   const [isPending, startTransition] = useTransition();
   const t = useTranslations();
+  const tProfile = useTranslations("auth.completeProfile");
 
   const {
     register,
@@ -43,39 +44,34 @@ export function CompleteProfileForm() {
           <div className="w-6 h-1.5 rounded-full bg-stone-200" />
           <div className="w-6 h-1.5 rounded-full bg-red-800" />
         </div>
-        <span className="text-xs text-stone-400">Étape 2 sur 2</span>
+        <span className="text-xs text-stone-400">{tProfile("step")}</span>
       </div>
 
       <h2 className="text-2xl font-bold text-stone-900 mb-1">
-        Complétez votre profil
+        {tProfile("title")}
       </h2>
       <p className="text-stone-500 text-sm mb-8 leading-relaxed">
-        Votre numéro ne sera partagé qu&apos;après confirmation d&apos;une
-        réservation.
+        {tProfile("subtitle")}
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <Input
-          label="Prénom et nom"
+          label={tProfile("fullNameLabel")}
           type="text"
           autoComplete="name"
-          placeholder="Arben Hoxha"
-          error={errors.full_name?.message}
+          placeholder={tProfile("fullNamePlaceholder")}
+          error={errors.full_name?.message ? t(errors.full_name.message) : undefined}
           required
           {...register("full_name")}
         />
 
         <Input
-          label="Numéro WhatsApp"
+          label={tProfile("phoneLabel")}
           type="tel"
           autoComplete="tel"
-          placeholder="+41 79 123 45 67"
-          error={errors.phone?.message}
-          helperText={
-            !errors.phone
-              ? "Format international : +41791234567. Utilisé pour se coordonner après acceptation."
-              : undefined
-          }
+          placeholder={tProfile("phonePlaceholder")}
+          error={errors.phone?.message ? t(errors.phone.message) : undefined}
+          helperText={!errors.phone ? tProfile("phoneHelp") : undefined}
           required
           {...register("phone")}
         />
@@ -104,8 +100,7 @@ export function CompleteProfileForm() {
             />
           </svg>
           <p className="text-xs text-stone-500 leading-relaxed">
-            Votre numéro est confidentiel. Il n&apos;est révélé qu&apos;au
-            conducteur ou au passager après acceptation de la réservation.
+            {tProfile("privacyNotice")}
           </p>
         </div>
 
@@ -115,7 +110,7 @@ export function CompleteProfileForm() {
           className="w-full mt-2"
           isLoading={isPending}
         >
-          Accéder à AlbaDrive
+          {tProfile("submit")}
         </Button>
       </form>
     </div>

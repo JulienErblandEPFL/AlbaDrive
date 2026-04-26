@@ -1,5 +1,6 @@
-// src/app/(auth)/layout.tsx
 // Shared layout for all auth pages: /login, /register, /complete-profile
+import { getTranslations } from "next-intl/server";
+import type { SupportedLocale } from "@/i18n/routing";
 
 /** Decorative route line — visually communicates the carpooling concept */
 function RouteVisual() {
@@ -52,11 +53,19 @@ export function AlbaDriveLogo({
   );
 }
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  const t = await getTranslations({
+    locale: locale as SupportedLocale,
+    namespace: "auth.layout",
+  });
+
   return (
     <div className="min-h-dvh flex">
       {/* ── Left brand panel (desktop only) ─────────────────── */}
@@ -89,15 +98,15 @@ export default function AuthLayout({
           {/* Headline */}
           <div className="mt-12">
             <p className="text-white/50 text-sm font-medium uppercase tracking-widest mb-3">
-              La communauté du voyage
+              {t("tagline")}
             </p>
             <h1 className="text-white text-4xl xl:text-5xl font-bold leading-tight">
-              Voyagez{" "}
-              <span className="text-red-400">ensemble,</span>
+              {t("headlineLine1")}{" "}
+              <span className="text-red-400">{t("headlineEmphasis")}</span>
               <br />
-              voyagez en
+              {t("headlineLine2")}
               <br />
-              famille.
+              {t("headlineLine3")}
             </h1>
           </div>
 
@@ -107,7 +116,7 @@ export default function AuthLayout({
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-white/30 text-xs">
-            Genève · München · Paris · Zürich → Balkans
+            {t("footerCities")}
           </p>
         </div>
       </div>

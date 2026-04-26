@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth.schema";
@@ -36,6 +37,7 @@ export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [isGooglePending, startGoogleTransition] = useTransition();
   const t = useTranslations();
+  const tLogin = useTranslations("auth.login");
 
   const {
     register,
@@ -70,15 +72,15 @@ export function LoginForm() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-stone-900 mb-1">Connexion</h2>
+      <h2 className="text-2xl font-bold text-stone-900 mb-1">{tLogin("title")}</h2>
       <p className="text-stone-500 text-sm mb-8">
-        Pas encore de compte ?{" "}
-        <a
+        {tLogin("subtitle")}{" "}
+        <Link
           href="/register"
           className="text-red-800 font-medium hover:text-red-900 transition-colors"
         >
-          S&apos;inscrire
-        </a>
+          {tLogin("subtitleLink")}
+        </Link>
       </p>
 
       {/* Google OAuth */}
@@ -88,17 +90,17 @@ export function LoginForm() {
         className="w-full mb-4"
         onClick={handleGoogleLogin}
         isLoading={isGooglePending}
-        aria-label="Continuer avec Google"
+        aria-label={tLogin("googleAriaLabel")}
       >
         <GoogleIcon />
-        Continuer avec Google
+        {tLogin("googleButton")}
       </Button>
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-5">
         <div className="flex-1 h-px bg-stone-200" />
         <span className="text-xs text-stone-400 font-medium uppercase tracking-wide">
-          ou
+          {tLogin("divider")}
         </span>
         <div className="flex-1 h-px bg-stone-200" />
       </div>
@@ -106,21 +108,21 @@ export function LoginForm() {
       {/* Email/password form */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <Input
-          label="Email"
+          label={tLogin("emailLabel")}
           type="email"
           autoComplete="email"
-          placeholder="vous@exemple.com"
-          error={errors.email?.message}
+          placeholder={tLogin("emailPlaceholder")}
+          error={errors.email?.message ? t(errors.email.message) : undefined}
           required
           {...register("email")}
         />
 
         <Input
-          label="Mot de passe"
+          label={tLogin("passwordLabel")}
           type="password"
           autoComplete="current-password"
-          placeholder="••••••••"
-          error={errors.password?.message}
+          placeholder={tLogin("passwordPlaceholder")}
+          error={errors.password?.message ? t(errors.password.message) : undefined}
           required
           {...register("password")}
         />
@@ -141,7 +143,7 @@ export function LoginForm() {
           className="w-full mt-2"
           isLoading={isPending}
         >
-          Se connecter
+          {tLogin("submit")}
         </Button>
       </form>
     </div>

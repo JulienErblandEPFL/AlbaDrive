@@ -5,6 +5,7 @@ import { useTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth.schema";
@@ -38,6 +39,7 @@ export function RegisterForm() {
   const [isGooglePending, startGoogleTransition] = useTransition();
   const [emailSent, setEmailSent] = useState(false);
   const t = useTranslations();
+  const tRegister = useTranslations("auth.register");
 
   const {
     register,
@@ -83,33 +85,32 @@ export function RegisterForm() {
           <CheckCircle className="w-7 h-7 text-green-600" />
         </div>
         <h2 className="text-xl font-bold text-stone-900 mb-2">
-          Vérifiez votre email
+          {tRegister("emailSent.title")}
         </h2>
         <p className="text-stone-500 text-sm leading-relaxed">
-          Un lien de confirmation a été envoyé à votre adresse. Cliquez dessus
-          pour activer votre compte.
+          {tRegister("emailSent.description")}
         </p>
-        <a
+        <Link
           href="/login"
           className="inline-block mt-6 text-sm font-medium text-red-800 hover:text-red-900"
         >
-          Retour à la connexion
-        </a>
+          {tRegister("emailSent.backLink")}
+        </Link>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-stone-900 mb-1">Créer un compte</h2>
+      <h2 className="text-2xl font-bold text-stone-900 mb-1">{tRegister("title")}</h2>
       <p className="text-stone-500 text-sm mb-8">
-        Déjà membre ?{" "}
-        <a
+        {tRegister("subtitle")}{" "}
+        <Link
           href="/login"
           className="text-red-800 font-medium hover:text-red-900 transition-colors"
         >
-          Se connecter
-        </a>
+          {tRegister("subtitleLink")}
+        </Link>
       </p>
 
       {/* Google OAuth */}
@@ -119,49 +120,49 @@ export function RegisterForm() {
         className="w-full mb-4"
         onClick={handleGoogleLogin}
         isLoading={isGooglePending}
-        aria-label="Continuer avec Google"
+        aria-label={tRegister("googleAriaLabel")}
       >
         <GoogleIcon />
-        Continuer avec Google
+        {tRegister("googleButton")}
       </Button>
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-5">
         <div className="flex-1 h-px bg-stone-200" />
         <span className="text-xs text-stone-400 font-medium uppercase tracking-wide">
-          ou
+          {tRegister("divider")}
         </span>
         <div className="flex-1 h-px bg-stone-200" />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <Input
-          label="Email"
+          label={tRegister("emailLabel")}
           type="email"
           autoComplete="email"
-          placeholder="vous@exemple.com"
-          error={errors.email?.message}
+          placeholder={tRegister("emailPlaceholder")}
+          error={errors.email?.message ? t(errors.email.message) : undefined}
           required
           {...register("email")}
         />
 
         <Input
-          label="Mot de passe"
+          label={tRegister("passwordLabel")}
           type="password"
           autoComplete="new-password"
-          placeholder="Minimum 8 caractères"
-          error={errors.password?.message}
-          helperText={!errors.password ? "8 caractères minimum" : undefined}
+          placeholder={tRegister("passwordPlaceholder")}
+          error={errors.password?.message ? t(errors.password.message) : undefined}
+          helperText={!errors.password ? tRegister("passwordHelp") : undefined}
           required
           {...register("password")}
         />
 
         <Input
-          label="Confirmer le mot de passe"
+          label={tRegister("confirmPasswordLabel")}
           type="password"
           autoComplete="new-password"
-          placeholder="••••••••"
-          error={errors.confirmPassword?.message}
+          placeholder={tRegister("confirmPasswordPlaceholder")}
+          error={errors.confirmPassword?.message ? t(errors.confirmPassword.message) : undefined}
           required
           {...register("confirmPassword")}
         />
@@ -181,11 +182,11 @@ export function RegisterForm() {
           className="w-full mt-2"
           isLoading={isPending}
         >
-          Créer mon compte
+          {tRegister("submit")}
         </Button>
 
         <p className="text-center text-xs text-stone-400 leading-relaxed">
-          En créant un compte, vous acceptez nos conditions d&apos;utilisation.
+          {tRegister("termsNotice")}
         </p>
       </form>
     </div>
