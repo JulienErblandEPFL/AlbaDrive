@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-24 against commit `49cb3cb` (branch `main`) — after shipping the bidirectional reviews feature (Tasks 1–12c of `docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`). Uncommitted WIP from earlier sessions remains (`package.json`, `supabase/config.toml`, `.gitignore`, `src/app/(main)/bookings/actions.ts`, `src/app/(main)/trips/actions.ts`).
+> Last synced: 2026-04-26 against branch `main` — Phase A of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is complete. Routes now live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and the Albanian bundle is flagged `_meta.review = "needs-native-speaker-review"` pending a human pass. Phases B/C/D (locale switcher UI, font subsets, `profiles.preferred_locale`) are not started.
 
 ---
 
@@ -16,7 +16,7 @@ AlbaDrive is a carpooling web app for the Albanian diaspora in Europe, connectin
   *Why:* Storing user messages would make AlbaDrive a data controller for conversation content (GDPR), introduce moderation/abuse liability, and require a notification backend (email/push) to be usable — without which users silently fall back to WhatsApp anyway. WhatsApp already solves coordination; re-implementing it adds surface without adding value at MVP scale.
 - **Phone numbers are private until acceptance** — enforced at RLS, Server Action, and query level.
 
-UI language is French. Routes are all French-prefixed labels; code/identifiers remain English.
+UI is now multilingual. Four locales are wired (`fr` default, `en`, `de`, `sq`); every route is prefixed (`/fr/...`, `/en/...`, …), `/` 307-redirects to the `Accept-Language`-detected default, and `NEXT_LOCALE` cookie carries the user's choice forward (locale-switcher UI ships in Phase B). Code identifiers remain English; user-visible copy lives in `src/messages/{locale}/{namespace}.json`.
 
 ---
 
@@ -30,7 +30,8 @@ UI language is French. Routes are all French-prefixed labels; code/identifiers r
 | Styling | Tailwind CSS 4 |
 | Auth + DB | Supabase (Postgres + RLS), `@supabase/ssr` 0.10.2 |
 | Forms | `react-hook-form` 7 + `zod` 4 (via `@hookform/resolvers` 5) |
-| Dates | `date-fns` 4 (fr locale) |
+| Dates | `date-fns` 4 + locale-aware wrapper (`src/lib/intl/date.ts` selects fr/enGB/de/sq) |
+| i18n | `next-intl` 4 (App Router-native, ICU MessageFormat, RSC + Server Action support) |
 | Icons | `lucide-react` 1.8 |
 | Fonts | `next/font/google` — DM Sans (`--font-dm-sans`) |
 | Unit tests | Vitest 4 + `@testing-library/react` 16 + jsdom |
@@ -48,50 +49,62 @@ UI language is French. Routes are all French-prefixed labels; code/identifiers r
 
 ```
 src/
-├── middleware.ts                   # Supabase session refresh + route protection (sole place)
+├── middleware.ts                   # next-intl locale routing + Supabase session refresh + auth redirects
+├── i18n/
+│   ├── routing.ts                  # locales (fr|en|de|sq), defaultLocale, NAMESPACES (12)
+│   ├── request.ts                  # getRequestConfig — dynamic-imports message bundles
+│   └── navigation.ts               # locale-aware <Link>, redirect, useRouter
 ├── app/
-│   ├── layout.tsx                  # Root layout (DM Sans, fr locale)
-│   ├── page.tsx                    # Public landing (hero, how-it-works, driver CTA)
 │   ├── globals.css
-│   ├── auth/callback/route.ts      # OAuth code exchange → session
-│   ├── (auth)/                     # Unauth shell (split-screen brand panel)
-│   │   ├── layout.tsx
-│   │   ├── login/          (page + LoginForm + actions.ts:signIn)
-│   │   ├── register/       (page + RegisterForm + actions.ts:signUp)
-│   │   └── complete-profile/(page + CompleteProfileForm + actions.ts:completeProfile)
-│   └── (main)/                     # App shell with Navbar (handles public + auth)
-│       ├── layout.tsx
-│       ├── trips/
-│       │   ├── page.tsx            # Public search w/ from/to/date searchParams
-│       │   ├── [id]/               # Public detail + BookingSection (Client)
-│       │   ├── create/             # Auth-only CreateTripForm
-│       │   ├── components/         # TripCard, SearchBar, CityCombobox
-│       │   ├── actions.ts          # createTrip, cancelTrip
-│       │   └── actions.test.ts
-│       ├── bookings/
-│       │   ├── actions.ts          # requestBooking, acceptBooking, cancelBooking, getWhatsAppLink
-│       │   └── actions.test.ts
-│       ├── reviews/
-│       │   ├── actions.ts          # submitReview, getPassengerReviewSummary, getDriverReviewDetails
-│       │   ├── actions.test.ts
-│       │   └── ReviewModal.tsx
-│       └── dashboard/
-│           ├── page.tsx            # RSC, parallel queries, delegates to DashboardTabs
-│           ├── DashboardTabs.tsx   # Client — driver/passenger tab switcher
-│           ├── DriverTripCard.tsx
-│           └── PassengerBookingCard.tsx
+│   ├── auth/callback/route.ts      # OAuth code exchange (locale-agnostic)
+│   └── [locale]/
+│       ├── layout.tsx              # generateStaticParams + setRequestLocale + NextIntlClientProvider, dynamic <html lang>
+│       ├── page.tsx                # Public landing (hero, how-it-works, driver CTA)
+│       ├── (auth)/                 # Unauth shell (split-screen brand panel)
+│       │   ├── layout.tsx          # async — getTranslations("auth.layout")
+│       │   ├── login/          (page + LoginForm + actions.ts:signIn)
+│       │   ├── register/       (page + RegisterForm + actions.ts:signUp)
+│       │   └── complete-profile/(page + CompleteProfileForm + actions.ts:completeProfile)
+│       └── (main)/                 # App shell with Navbar (handles public + auth)
+│           ├── layout.tsx
+│           ├── trips/
+│           │   ├── page.tsx        # Public search w/ from/to/date searchParams
+│           │   ├── [id]/           # Public detail + BookingSection (Client)
+│           │   ├── create/         # Auth-only CreateTripForm
+│           │   ├── components/     # TripCard, SearchBar, CityCombobox
+│           │   ├── actions.ts      # createTrip, cancelTrip
+│           │   └── actions.test.ts
+│           ├── bookings/
+│           │   ├── actions.ts      # requestBooking, acceptBooking, cancelBooking, getWhatsAppLink
+│           │   └── actions.test.ts
+│           ├── reviews/
+│           │   ├── actions.ts      # submitReview, getPassengerReviewSummary, getDriverReviewDetails
+│           │   ├── actions.test.ts
+│           │   └── ReviewModal.tsx
+│           └── dashboard/
+│               ├── page.tsx        # RSC, parallel queries, delegates to DashboardTabs
+│               ├── DashboardTabs.tsx
+│               ├── DriverTripCard.tsx
+│               └── PassengerBookingCard.tsx
+├── messages/
+│   ├── fr/  (12 namespaces)         common, navbar, landing, auth, trips,
+│   ├── en/  (12 namespaces)         bookings, reviews, dashboard, status,
+│   ├── de/  (12 namespaces)         errors, validation, countries
+│   └── sq/  (12 namespaces, _meta.review = "needs-native-speaker-review")
 ├── components/
-│   ├── layout/Navbar.tsx           # Desktop top nav + mobile bottom tabs
-│   └── ui/                         # Button, Input, StatusBadge, StarRating
+│   ├── layout/Navbar.tsx           # Desktop top nav + mobile bottom tabs (i18n via "navbar")
+│   └── ui/                         # Button, Input, StatusBadge (i18n via "status"), StarRating
 ├── lib/
 │   ├── supabase/{server,client}.ts # Session-aware SSR + browser client factories
 │   ├── auth/actions.ts             # signOut (redirect-only)
-│   ├── validations/{auth,trip,booking,review}.schema.ts
+│   ├── validations/{auth,trip,booking,review}.schema.ts   # codes-as-messages
 │   ├── reviews/display-name.ts     # pseudonymizeName helper (+ tests)
-│   ├── constants/cities.ts         # 48 pre-geocoded cities (EU + Balkans)
+│   ├── constants/cities.ts         # 48 pre-geocoded cities; country = ISO-3166 code
+│   ├── intl/date.ts                # locale-aware date-fns wrapper + useFormatLocalizedDate
+│   ├── intl/translate.test.ts      # parity test — every fr/* key exists in en/de/sq
 │   └── test-utils/supabase-mock.ts
 └── types/
-    ├── actions.ts                  # ActionResult<T> discriminated union
+    ├── actions.ts                  # ActionResult<T> with ActionError = { code; params? }
     └── database.types.ts           # Hand-written (see Known Issues)
 
 supabase/
@@ -105,11 +118,11 @@ supabase/
 
 ### Request lifecycle
 
-1. **`src/middleware.ts`** runs on every matched route. It (a) refreshes the Supabase session via `getUser()` — required, do not remove, (b) redirects unauth users off `/dashboard` and `/trips/create`, (c) redirects authenticated users away from `/login` and `/register`, (d) redirects authenticated users without a `profiles` row to `/complete-profile`.
-2. **Route visibility**: `/`, `/trips`, `/trips/[id]`, `/auth/*`, `/login`, `/register` are public; `/dashboard` and `/trips/create` require auth + profile; `/complete-profile` requires auth only.
-3. **Server Components** fetch via `createServerClient()` (`@/lib/supabase/server.ts`).
-4. **Mutations** go through **Server Actions only** (`app/**/actions.ts`), each returning `ActionResult<T>` — never throwing. Actions re-verify auth + ownership before touching the DB.
-5. **Client Components** are leaf-only (`CreateTripForm`, `BookingSection`, `Navbar`, `DashboardTabs`, combobox, forms). They call Server Actions via `useTransition`.
+1. **`src/middleware.ts`** runs on every matched route. It (a) hands the request to next-intl's middleware first — locale prefix detection, `Accept-Language` matching, `NEXT_LOCALE` cookie, redirect of bare paths to `/{locale}/...`, (b) refreshes the Supabase session via `getUser()` on the same response so cookie writes survive — required, do not remove, (c) redirects unauth users off `/{locale}/dashboard` and `/{locale}/trips/create`, (d) redirects authenticated users away from `/{locale}/login` and `/{locale}/register`, (e) redirects authenticated users without a `profiles` row to `/{locale}/complete-profile`. The auth-prefix matchers are locale-aware. The OAuth callback `/auth/callback` stays outside the locale tree.
+2. **Route visibility**: `/{locale}/`, `/{locale}/trips`, `/{locale}/trips/[id]`, `/auth/*`, `/{locale}/login`, `/{locale}/register` are public; `/{locale}/dashboard` and `/{locale}/trips/create` require auth + profile; `/{locale}/complete-profile` requires auth only.
+3. **Server Components** fetch via `createServerClient()` (`@/lib/supabase/server.ts`) and call `await getTranslations({ locale, namespace })` for copy.
+4. **Mutations** go through **Server Actions only** (`app/**/actions.ts`), each returning `ActionResult<T>` where `error` is now `{ code: string; params?: Record<string, string|number> }`. Action callers do `t(result.error.code, result.error.params)` at the render site. Actions re-verify auth + ownership before touching the DB and never throw.
+5. **Client Components** are leaf-only (`CreateTripForm`, `BookingSection`, `Navbar`, `DashboardTabs`, combobox, forms). They call Server Actions via `useTransition` and consume `useTranslations()` for copy. Field-level errors are zod codes (e.g. `"validation.auth.email.invalid"`) translated in render.
 
 ### Data model (Postgres, all RLS-enabled)
 
@@ -184,28 +197,46 @@ supabase/
 ### Navbar (`components/layout/Navbar.tsx`)
 - Desktop top nav + mobile bottom tab bar; user menu with signout.
 
+### i18n
+- 4 locales (`fr` default, `en`, `de`, `sq`) × 12 namespaces = 48 message bundles in `src/messages/**/*.json`. Empty namespaces have been retired during Phase A.
+- `next-intl` v4. Path-based routing with `localePrefix: "always"` (`/fr/...`, `/en/...`, etc.). `/` 307-redirects to the detected default. Locale persists in `NEXT_LOCALE` cookie.
+- `setRequestLocale` is called in the `[locale]` root layout for static rendering. `generateStaticParams` emits all 4 locale params at build time.
+- Server Components/Actions use `getTranslations({ locale, namespace })`; Client Components use `useTranslations(namespace)` with the request locale provided by `<NextIntlClientProvider>`.
+- ICU MessageFormat for plurals (`{count, plural, one {…} other {…}}`) and selects (`{status, select, cancelled {…} other {…}}`) — used in error messages and seat counters.
+- All Server-Action errors are codes (`{ code: "errors.booking.self_booking", params? }`); zod `.message` arguments are also codes (`"validation.auth.email.invalid"`). The `errors` and `validation` namespaces hold the human strings. This decouples action contracts from copy permanently — copy can change without rewriting any test.
+- Country labels live in `messages/{locale}/countries.json` keyed on ISO-3166 codes. City names themselves stay canonical (Genève, München, Shkodër) — diaspora users recognise and search those forms.
+- Date format strings are locale-specific copy (`"EEEE d MMMM yyyy 'à' HH'h'mm"` for fr, `"EEEE, d. MMMM yyyy 'um' HH:mm 'Uhr'"` for de, etc.) and live in `common.dateFormat`. Resolved through `formatLocalizedDate` (server) / `useFormatLocalizedDate` (client).
+- WhatsApp pre-filled bodies are translated in the **caller's** locale (Phase A). Switching to **recipient's** locale needs the `profiles.preferred_locale` migration (Phase D).
+
 ### Tests
-- `src/app/(main)/trips/actions.test.ts` — createTrip, cancelTrip.
-- `src/app/(main)/bookings/actions.test.ts` — all 4 booking actions, including security checks.
-- `src/app/(main)/reviews/actions.test.ts` — submitReview happy + rejection paths, getPassengerReviewSummary, getDriverReviewDetails (pseudonymisation round-trip).
+- `src/app/[locale]/(main)/trips/actions.test.ts` — createTrip, cancelTrip.
+- `src/app/[locale]/(main)/bookings/actions.test.ts` — all 4 booking actions, including security checks. Stubs `next-intl/server.getTranslations` so the WhatsApp link tests pass outside a real Next request.
+- `src/app/[locale]/(main)/reviews/actions.test.ts` — submitReview happy + rejection paths, getPassengerReviewSummary, getDriverReviewDetails (pseudonymisation round-trip).
 - `src/lib/reviews/display-name.test.ts` — pseudonymizeName edge cases.
+- `src/lib/intl/translate.test.ts` — parity check: every key path in `fr/{ns}.json` must exist in `en/`, `de/`, `sq/`. Catches missing translations at test time.
 - Shared Supabase mock factory (`src/lib/test-utils/supabase-mock.ts`) — `MOCK_USER`/`MOCK_PASSENGER` IDs are RFC 4122 UUID-v4 shape so they pass zod's `.uuid()` check.
 - `vitest.setup.ts` stubs `next/cache` and `next/headers`.
-- Assertions aligned to French error messages (65 tests, all green).
+- Server-action assertions are now keyed on error **codes** (`expect(result.error.code).toBe("errors.booking.self_booking")`) — locale-agnostic. 77 tests, all green.
 
 ---
 
 ## Pending / WIP
 
-No explicit in-progress feature branch. The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is **fully executed** — see commits `ff56d38` → `49cb3cb`. The earlier backend-actions-tests plan is also complete.
+**Phase A** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, and `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review). Phase B (locale-switcher UI), Phase C (DM Sans `latin-ext` subset), and Phase D (`profiles.preferred_locale` migration + recipient-locale WhatsApp + SEO `hreflang`/sitemap) are **not started**.
+
+The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is fully executed.
 
 Natural next candidates (not started):
+- **i18n Phase B**: `LocaleSwitcher` component, wired into Navbar (desktop + mobile dropdown) and `(auth)/layout.tsx`.
+- **i18n Phase C**: extend DM Sans subsets to `["latin", "latin-ext"]` for German umlauts + Albanian ç/ë.
+- **i18n Phase D**: Supabase migration adding `profiles.preferred_locale text default 'fr' check (in 'fr','en','de','sq')`; switch `getWhatsAppLink` to recipient's preferred locale; emit `metadata.alternates.languages` and a `sitemap.ts`.
+- **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`.
 - Driver can edit a trip (only cancel + create today).
 - Pagination / infinite scroll on `/trips` (currently unbounded list).
 - Notifications (email on booking accepted/declined — no provider wired).
 - OAuth provider config (Google) — the callback route exists but no `.env.local` entries.
 - Avatar upload (`profiles.avatar_url` is present in the schema but no upload path).
-- Playwright E2E suite (not scaffolded; no `@playwright/test` dep, no `e2e/` folder, no config).
+- Playwright E2E suite (not scaffolded).
 - Realtime updates on the dashboard (Supabase Realtime not yet enabled on any table).
 
 ---
@@ -229,3 +260,12 @@ Natural next candidates (not started):
 
 6. **Next.js 16 is current but `next.config.ts` is empty.**
    No `images.remotePatterns`, no `experimental` flags. Fine today (all images are local to `/public/images`), but any external asset (avatar CDN, Supabase Storage) will require config.
+
+7. **Layout `params` type asymmetry between pages and layouts.**
+   Next.js's auto-generated `LayoutProps<"/[locale]">` constraint pins `params.locale` to `string`, not the narrowed `SupportedLocale` union. Pages don't have this constraint. Result: layouts (e.g. `[locale]/layout.tsx`, `[locale]/(auth)/layout.tsx`) must accept `{ locale: string }` and cast inside (`locale as SupportedLocale`); pages can use the narrow type directly. Two-line workaround per file, but worth knowing if the pattern proliferates.
+
+8. **Albanian copy is best-effort.**
+   Every `sq/*.json` carries `_meta.review = "needs-native-speaker-review"`. Strings were generated by Claude based on plausible Albanian phrasing for the diaspora context but have not been reviewed by a native speaker. Sample non-trivial choices the reviewer should sanity-check: pronoun politeness on the auth pages, "shoferin tuaj"/"pasagjerin tuaj" definite-form choice, Kosovo/Albania orthography conventions in city labels (we kept "Genevë", "Mynih", "Cyrih" which may not all be canonical), and pluralisation behaviour in ICU plurals (Albanian is `one|other`, but the natural phrasing in the `other` branch may need adjustments).
+
+9. **WhatsApp body uses caller locale, not recipient locale.**
+   `getWhatsAppLink` currently calls `await getTranslations("bookings.whatsapp")` against the request's locale — i.e. the locale of whoever clicked "Contact". The recipient may have set a different `NEXT_LOCALE` cookie. Fixing this requires the Phase D migration that adds `profiles.preferred_locale` so the action can look up the *other party's* preference. Mitigation today: short, structurally similar bodies across all four locales — no information loss, just a slight tone mismatch.
