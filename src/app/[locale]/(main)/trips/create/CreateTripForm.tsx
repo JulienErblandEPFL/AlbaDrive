@@ -10,7 +10,7 @@ import { ArrowRight, ArrowLeft, MapPin, Calendar, Car, CheckCircle } from "lucid
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createTrip } from "@/app/[locale]/(main)/trips/actions";
-import { citiesByRegion, findCity } from "@/lib/constants/cities";
+import { citiesByCountry, findCity } from "@/lib/constants/cities";
 
 // ── Client-side form schema (city labels, not LocationJsonb) ────────────────
 // Messages are i18n keys (codes-as-messages pattern); the form translates them
@@ -54,7 +54,8 @@ function CitySelect({
   error?: string;
   selectPlaceholder: string;
 }) {
-  const grouped = citiesByRegion();
+  const grouped = citiesByCountry();
+  const tCountry = useTranslations("countries");
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -79,8 +80,8 @@ function CitySelect({
         {...props}
       >
         <option value="">{selectPlaceholder}</option>
-        {Object.entries(grouped).map(([region, cities]) => (
-          <optgroup key={region} label={region}>
+        {Object.entries(grouped).map(([countryCode, cities]) => (
+          <optgroup key={countryCode} label={tCountry(countryCode)}>
             {cities.map((c) => (
               <option key={c.label} value={c.label}>
                 {c.label}

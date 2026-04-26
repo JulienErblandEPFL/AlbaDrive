@@ -34,6 +34,7 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("trips.city");
+  const tCountry = useTranslations("countries");
 
   const [value, setValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
@@ -208,7 +209,7 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
                 />
                 <div className="min-w-0">
                   <span className="text-sm font-medium">{city.label}</span>
-                  <span className="ml-2 text-xs text-stone-400">{city.region}</span>
+                  <span className="ml-2 text-xs text-stone-400">{tCountry(city.country)}</span>
                 </div>
               </li>
             ))
