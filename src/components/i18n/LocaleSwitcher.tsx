@@ -47,7 +47,7 @@ function LocaleSwitcherFallback({ className = "" }: LocaleSwitcherProps) {
 
 function LocaleSwitcherImpl({ className = "" }: LocaleSwitcherProps) {
   const currentLocale = useLocale() as SupportedLocale;
-  const t = useTranslations("localeSwitcher");
+  const t = useTranslations("common.localeSwitcher");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
