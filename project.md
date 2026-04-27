@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-27 against branch `main` — Phases A, B, and C of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D, applied to the linked Supabase project, and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory. DM Sans now ships the `latin-ext` subset so German umlauts and Albanian ç/ë render in the brand font. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. The rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) is not started.
+> Last synced: 2026-04-27 against branch `main` — the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is **complete across all four phases**. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout), `profiles.preferred_locale` is applied to the linked Supabase project and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory, DM Sans ships the `latin-ext` subset for German umlauts and Albanian ç/ë, WhatsApp pre-filled bodies are composed in the **recipient's** locale, and public pages emit `hreflang` alternates + a `/sitemap.xml` for SEO. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"` pending a native-speaker pass.
 
 ---
 
@@ -59,6 +59,7 @@ src/
 ├── app/
 │   ├── globals.css
 │   ├── auth/callback/route.ts      # OAuth code exchange (locale-agnostic)
+│   ├── sitemap.ts                  # /sitemap.xml — public paths × 4 locales with hreflang alternates
 │   └── [locale]/
 │       ├── layout.tsx              # generateStaticParams + setRequestLocale + NextIntlClientProvider, dynamic <html lang>
 │       ├── page.tsx                # Public landing (hero, how-it-works, driver CTA)
@@ -104,6 +105,7 @@ src/
 │   ├── reviews/display-name.ts     # pseudonymizeName helper (+ tests)
 │   ├── constants/cities.ts         # 48 pre-geocoded cities; country = ISO-3166 code
 │   ├── intl/date.ts                # locale-aware date-fns wrapper + useFormatLocalizedDate
+│   ├── intl/seo.ts                 # buildLocaleAlternates, buildCanonical, getOgLocale (used by every public page)
 │   ├── intl/translate.test.ts      # parity test — every fr/* key exists in en/de/sq
 │   └── test-utils/supabase-mock.ts
 └── types/
@@ -209,7 +211,8 @@ supabase/
 - All Server-Action errors are codes (`{ code: "errors.booking.self_booking", params? }`); zod `.message` arguments are also codes (`"validation.auth.email.invalid"`). The `errors` and `validation` namespaces hold the human strings. This decouples action contracts from copy permanently — copy can change without rewriting any test.
 - Country labels live in `messages/{locale}/countries.json` keyed on ISO-3166 codes. City names themselves stay canonical (Genève, München, Shkodër) — diaspora users recognise and search those forms.
 - Date format strings are locale-specific copy (`"EEEE d MMMM yyyy 'à' HH'h'mm"` for fr, `"EEEE, d. MMMM yyyy 'um' HH:mm 'Uhr'"` for de, etc.) and live in `common.dateFormat`. Resolved through `formatLocalizedDate` (server) / `useFormatLocalizedDate` (client).
-- WhatsApp pre-filled bodies are translated in the **caller's** locale (Phase A). Switching to **recipient's** locale needs the `profiles.preferred_locale` migration (Phase D).
+- WhatsApp pre-filled bodies are translated in the **recipient's** locale: `getWhatsAppLink` reads the other party's `profiles.preferred_locale` and renders the body against that, falling back to `fr` when null. The asymmetric case (e.g. Swiss driver browsing French contacts an Albanian-only passenger) writes the message in the recipient's language.
+- SEO: every public page (landing, `/trips`, `/trips/[id]`) emits `metadata.alternates.languages` for the four locales plus an `x-default` pointing at `fr`, and an `openGraph.locale` tag using BCP-47-ish region codes (`fr_FR`, `en_GB`, `de_DE`, `sq_AL`). `/sitemap.xml` enumerates the static public paths × 4 locales via per-entry hreflang alternates. Auth-walled and dashboard pages are intentionally not crawlable.
 
 ### Tests
 - `src/app/[locale]/(main)/trips/actions.test.ts` — createTrip, cancelTrip.
@@ -225,13 +228,10 @@ supabase/
 
 ## Pending / WIP
 
-**Phases A, B, and C** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review), the `LocaleSwitcher` is wired into both the Navbar and the `(auth)` layout, and DM Sans is configured with the `["latin", "latin-ext"]` subset set. The `profiles.preferred_locale` column (originally Phase D) was pulled forward as part of B.4 to enable cross-device locale memory. Only Phase D-remainder (recipient-locale WhatsApp + SEO `hreflang`/sitemap) is **not started**.
-
-The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is fully executed.
+The **i18n migration is fully done** (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) — Phases A, B, C, and D are all on `main`. The plan can be considered closed. The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is also fully executed.
 
 Natural next candidates (not started):
-- **i18n Phase D (remaining)**: switch `getWhatsAppLink` to read the **recipient's** `preferred_locale` so the message is composed in the other party's language; emit `metadata.alternates.languages` and a `sitemap.ts` for SEO `hreflang` coverage.
-- **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`.
+- **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`. The largest open i18n risk.
 - Driver can edit a trip (only cancel + create today).
 - Pagination / infinite scroll on `/trips` (currently unbounded list).
 - Notifications (email on booking accepted/declined — no provider wired).
@@ -268,5 +268,4 @@ Natural next candidates (not started):
 8. **Albanian copy is best-effort.**
    Every `sq/*.json` carries `_meta.review = "needs-native-speaker-review"`. Strings were generated by Claude based on plausible Albanian phrasing for the diaspora context but have not been reviewed by a native speaker. Sample non-trivial choices the reviewer should sanity-check: pronoun politeness on the auth pages, "shoferin tuaj"/"pasagjerin tuaj" definite-form choice, Kosovo/Albania orthography conventions in city labels (we kept "Genevë", "Mynih", "Cyrih" which may not all be canonical), and pluralisation behaviour in ICU plurals (Albanian is `one|other`, but the natural phrasing in the `other` branch may need adjustments).
 
-9. **WhatsApp body uses caller locale, not recipient locale.**
-   `getWhatsAppLink` currently calls `await getTranslations("bookings.whatsapp")` against the request's locale — i.e. the locale of whoever clicked "Contact". The dependency that blocked the fix is now lifted: `profiles.preferred_locale` exists (Phase B.4 pulled it forward from Phase D) and is populated for any user who has touched the `LocaleSwitcher` while signed in. Remaining work is a one-call edit in `getWhatsAppLink` to look up the *other party's* preference and render the body against that locale. Mitigation today: short, structurally similar bodies across all four locales — no information loss, just a slight tone mismatch.
+9. ~~**WhatsApp body uses caller locale, not recipient locale.**~~ **Resolved (Phase D.2)** — `getWhatsAppLink` now reads the other party's `profiles.preferred_locale` and renders the body in that locale, falling back to `fr` when null.
