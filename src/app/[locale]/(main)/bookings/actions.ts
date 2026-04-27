@@ -12,6 +12,7 @@ import {
 } from "@/lib/validations/booking.schema";
 import type { ActionResult } from "@/types/actions";
 import type { BookingRow, BookingStatus, TripStatus } from "@/types/database.types";
+import type { SupportedLocale } from "@/i18n/routing";
 
 export async function requestBooking(rawData: unknown): Promise<ActionResult<BookingRow>> {
   const supabase = await createServerClient();
@@ -247,11 +248,13 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
   }
 
   // Step 2: Fetch the other party's profile (phone gated by RLS on accepted bookings)
+  // We pull preferred_locale here too so the WhatsApp body is composed in the
+  // recipient's language, not the caller's. Falls back to 'fr' when null.
   const otherPartyId = isDriver ? booking.passenger_id : driverId;
 
   const { data: otherParty, error: otherPartyError } = await supabase
     .from("profiles")
-    .select("id, full_name, phone")
+    .select("id, full_name, phone, preferred_locale")
     .eq("id", otherPartyId)
     .is("deleted_at", null)
     .single();
@@ -275,9 +278,16 @@ export async function getWhatsAppLink(rawData: unknown): Promise<ActionResult<Wh
   // Build wa.me link — strip all non-digit chars from E.164 number
   const otherPhone = otherParty.phone.replace(/\D/g, "");
 
-  // Pre-filled message in the caller's locale. Recipient-locale switching is
-  // a Phase D enhancement that requires profiles.preferred_locale.
-  const t = await getTranslations("bookings.whatsapp");
+  // Pre-filled body in the *recipient's* preferred locale, not the caller's.
+  // This matters for the asymmetric case where, e.g., a Swiss driver who
+  // browses in French is contacting an Albanian-only passenger — the message
+  // should be Albanian. Fallback to 'fr' (the app default) if the recipient
+  // never touched the language switcher (preferred_locale is NULL).
+  const recipientLocale = (otherParty.preferred_locale ?? "fr") as SupportedLocale;
+  const t = await getTranslations({
+    locale: recipientLocale,
+    namespace: "bookings.whatsapp",
+  });
   const message = encodeURIComponent(
     isPassenger ? t("passengerBody") : t("driverBody"),
   );

@@ -9,9 +9,17 @@ vi.mock("@/lib/supabase/server");
 
 // next-intl's server helpers can't run outside a real Next request. Stub
 // getTranslations so action code-paths that emit pre-filled WhatsApp bodies
-// resolve to plain keys; the assertions only check the wa.me URL shape.
+// resolve to predictable strings. We surface the requested locale in the
+// returned value so assertions can verify recipient-locale routing without
+// depending on actual translated copy.
 vi.mock("next-intl/server", () => ({
-  getTranslations: async (namespace: string) => (key: string) => `${namespace}.${key}`,
+  getTranslations: async (
+    input: string | { locale?: string; namespace: string },
+  ) => {
+    const namespace = typeof input === "string" ? input : input.namespace;
+    const locale = typeof input === "string" ? "" : input.locale ?? "";
+    return (key: string) => `${locale || "_"}.${namespace}.${key}`;
+  },
 }));
 
 const VALID_REQUEST_INPUT = {
@@ -409,7 +417,7 @@ describe("getWhatsAppLink — security", () => {
     expect((result as { error: ActionError }).error.code).toBe("errors.whatsapp.only_for_accepted");
   });
 
-  it("returns passenger link (to contact driver) when called as passenger", async () => {
+  it("returns passenger link (to contact driver) — body in driver's preferred_locale", async () => {
     // 1st call: booking check
     mockSingle.mockResolvedValueOnce({
       data: {
@@ -419,9 +427,14 @@ describe("getWhatsAppLink — security", () => {
       },
       error: null,
     });
-    // 2nd call: other party (driver) profile
+    // 2nd call: other party (driver) profile — driver browses in German
     mockSingle.mockResolvedValueOnce({
-      data: { id: MOCK_USER.id, full_name: "Artan Doci", phone: "+41791234567" },
+      data: {
+        id: MOCK_USER.id,
+        full_name: "Artan Doci",
+        phone: "+41791234567",
+        preferred_locale: "de",
+      },
       error: null,
     });
     // 3rd call: own (passenger) profile
@@ -437,11 +450,16 @@ describe("getWhatsAppLink — security", () => {
     expect(data.role).toBe("passenger");
     expect(data.link_to_contact).toMatch(/wa\.me\/41791234567/);
     expect(data.other_party_name).toBe("Artan Doci");
+    // Body composed in the driver's locale (de), not the caller's request locale.
+    // The mock stub renders "<locale>.bookings.whatsapp.passengerBody" — URL-encoded.
+    expect(decodeURIComponent(data.link_to_contact)).toContain(
+      "de.bookings.whatsapp.passengerBody",
+    );
     // Must NOT contain the passenger's own number
     expect(data.link_to_contact).not.toMatch(/49151234567/);
   });
 
-  it("returns driver link (to contact passenger) when called as driver", async () => {
+  it("returns driver link (to contact passenger) — body in passenger's preferred_locale", async () => {
     const { mockClient, mockSingle: single } = buildSupabaseMock({ user: MOCK_USER });
     mockSingle = single;
     vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
@@ -454,9 +472,14 @@ describe("getWhatsAppLink — security", () => {
       },
       error: null,
     });
-    // Other party = passenger profile
+    // Other party = passenger profile — passenger speaks Albanian
     mockSingle.mockResolvedValueOnce({
-      data: { id: MOCK_PASSENGER.id, full_name: "Blerina Kelmendi", phone: "+49151234567" },
+      data: {
+        id: MOCK_PASSENGER.id,
+        full_name: "Blerina Kelmendi",
+        phone: "+49151234567",
+        preferred_locale: "sq",
+      },
       error: null,
     });
     // Own = driver profile
@@ -472,6 +495,42 @@ describe("getWhatsAppLink — security", () => {
     expect(data.role).toBe("driver");
     expect(data.link_to_contact).toMatch(/wa\.me\/49151234567/);
     expect(data.other_party_name).toBe("Blerina Kelmendi");
+    expect(decodeURIComponent(data.link_to_contact)).toContain(
+      "sq.bookings.whatsapp.driverBody",
+    );
+  });
+
+  it("falls back to 'fr' when the recipient never set preferred_locale", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        status: "accepted",
+        passenger_id: MOCK_PASSENGER.id,
+        trip: { driver_id: MOCK_USER.id },
+      },
+      error: null,
+    });
+    // Driver hasn't touched the language switcher → preferred_locale = null
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: MOCK_USER.id,
+        full_name: "Artan Doci",
+        phone: "+41791234567",
+        preferred_locale: null,
+      },
+      error: null,
+    });
+    mockSingle.mockResolvedValueOnce({
+      data: { id: MOCK_PASSENGER.id, full_name: "Blerina Kelmendi", phone: "+49151234567" },
+      error: null,
+    });
+
+    const result = await getWhatsAppLink({ booking_id: BOOKING_ID });
+
+    expect(result.success).toBe(true);
+    const data = (result as { data: { link_to_contact: string } }).data!;
+    expect(decodeURIComponent(data.link_to_contact)).toContain(
+      "fr.bookings.whatsapp.passengerBody",
+    );
   });
 
   it("returns error when booking is not found", async () => {
