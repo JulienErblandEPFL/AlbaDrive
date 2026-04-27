@@ -5,20 +5,9 @@ import { useState, useRef, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
 import { MapPin, X } from "lucide-react";
 import { CITIES } from "@/lib/constants/cities";
+import { findCityFlexible, normalizeForSearch } from "@/lib/geo";
 
 const POPULAR: string[] = ["Genève", "Lausanne", "Lyon", "Pristina", "Tirana"];
-
-function normalize(str: string): string {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 interface CityComboboxProps {
   name: string;
@@ -42,14 +31,14 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
 
   // Derived: suggestions based on current input
   const suggestions = (() => {
-    const q = normalize(value);
+    const q = normalizeForSearch(value);
     if (!q) {
       // Focus state: show popular cities
       return POPULAR.map((label) => CITIES.find((c) => c.label === label)).filter(
         Boolean
       ) as (typeof CITIES)[number][];
     }
-    return CITIES.filter((c) => normalize(c.label).includes(q)).slice(0, 8);
+    return CITIES.filter((c) => normalizeForSearch(c.label).includes(q)).slice(0, 8);
   })();
 
   const isEmpty = suggestions.length === 0;
@@ -74,8 +63,16 @@ export function CityCombobox({ name, label, placeholder, defaultValue = "", glas
   }
 
   function handleBlur() {
-    // Normalize on blur: trim + capitalize
-    setValue((v) => capitalize(v.trim()));
+    // Strict select: snap to canonical city label, or clear if input doesn't
+    // match any known city. Prevents arbitrary free-text from reaching the
+    // search query expansion in 1.C.
+    const raw = value.trim();
+    if (!raw) {
+      setValue("");
+      return;
+    }
+    const match = findCityFlexible(raw);
+    setValue(match ? match.label : "");
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
