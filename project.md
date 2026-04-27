@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-27 against branch `main` — Phase A and Phase B of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D and is wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory; the migration file ships in this branch but the production push is **deferred** (see Pending). The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. Phase C (font subsets) and the rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) are not started.
+> Last synced: 2026-04-27 against branch `main` — Phase A and Phase B of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D, applied to the linked Supabase project, and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. Phase C (font subsets) and the rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) are not started.
 
 ---
 
@@ -226,8 +226,6 @@ supabase/
 ## Pending / WIP
 
 **Phases A and B** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review), and the `LocaleSwitcher` is wired into both the Navbar and the `(auth)` layout. The `profiles.preferred_locale` column (originally Phase D) was pulled forward as part of B.4 to enable cross-device locale memory. Phase C (DM Sans `latin-ext` subset) and the rest of Phase D (recipient-locale WhatsApp + SEO `hreflang`/sitemap) are **not started**.
-
-**Action required before deploy**: the migration file `supabase/migrations/20260427000001_add_preferred_locale.sql` is committed but **not yet applied to the linked Supabase project** — `pnpm dlx supabase db push` currently fails on a parse error in `supabase/config.toml` (the `[functions.expire-trips].schedule` key is no longer recognised by CLI 2.95.5). Resolve the config issue, then `supabase db push --include-all` and regenerate `database.types.ts` from the linked DB. Until applied, `setLocale` will log `permission denied` / `column does not exist` errors when an authenticated user switches language, but the cookie write and request-time switch still work.
 
 The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is fully executed.
 
