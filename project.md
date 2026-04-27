@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-26 against branch `main` — Phase A of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is complete. Routes now live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and the Albanian bundle is flagged `_meta.review = "needs-native-speaker-review"` pending a human pass. Phases B/C/D (locale switcher UI, font subsets, `profiles.preferred_locale`) are not started.
+> Last synced: 2026-04-27 against branch `main` — Phase A and Phase B of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D and is wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory; the migration file ships in this branch but the production push is **deferred** (see Pending). The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. Phase C (font subsets) and the rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) are not started.
 
 ---
 
@@ -16,7 +16,7 @@ AlbaDrive is a carpooling web app for the Albanian diaspora in Europe, connectin
   *Why:* Storing user messages would make AlbaDrive a data controller for conversation content (GDPR), introduce moderation/abuse liability, and require a notification backend (email/push) to be usable — without which users silently fall back to WhatsApp anyway. WhatsApp already solves coordination; re-implementing it adds surface without adding value at MVP scale.
 - **Phone numbers are private until acceptance** — enforced at RLS, Server Action, and query level.
 
-UI is now multilingual. Four locales are wired (`fr` default, `en`, `de`, `sq`); every route is prefixed (`/fr/...`, `/en/...`, …), `/` 307-redirects to the `Accept-Language`-detected default, and `NEXT_LOCALE` cookie carries the user's choice forward (locale-switcher UI ships in Phase B). Code identifiers remain English; user-visible copy lives in `src/messages/{locale}/{namespace}.json`.
+UI is now multilingual. Four locales are wired (`fr` default, `en`, `de`, `sq`); every route is prefixed (`/fr/...`, `/en/...`, …), `/` 307-redirects to the `Accept-Language`-detected default, and `NEXT_LOCALE` cookie carries the user's choice forward. The `LocaleSwitcher` (`src/components/i18n/LocaleSwitcher.tsx`) is mounted in two places: leading the right cluster of `Navbar.tsx` (desktop + mobile, both authenticated and anonymous) and pinned `absolute top-4 right-4` on the form panel of `[locale]/(auth)/layout.tsx`. Selection writes the cookie via the `setLocale` Server Action and, for authenticated users, also upserts `profiles.preferred_locale` (best-effort — DB failures are logged, never surfaced). On sign-in (email/password and OAuth callback) the column is read back to seed the cookie, so a returning user lands in their last-chosen language regardless of device. Code identifiers remain English; user-visible copy lives in `src/messages/{locale}/{namespace}.json`.
 
 ---
 
@@ -53,7 +53,9 @@ src/
 ├── i18n/
 │   ├── routing.ts                  # locales (fr|en|de|sq), defaultLocale, NAMESPACES (12)
 │   ├── request.ts                  # getRequestConfig — dynamic-imports message bundles
-│   └── navigation.ts               # locale-aware <Link>, redirect, useRouter
+│   ├── navigation.ts               # locale-aware <Link>, redirect, useRouter
+│   ├── actions.ts                  # setLocale Server Action (cookie + best-effort profile upsert)
+│   └── server-locale.ts            # seedLocaleCookieFromProfile (called from sign-in / OAuth callback)
 ├── app/
 │   ├── globals.css
 │   ├── auth/callback/route.ts      # OAuth code exchange (locale-agnostic)
@@ -92,6 +94,7 @@ src/
 │   ├── de/  (12 namespaces)         errors, validation, countries
 │   └── sq/  (12 namespaces, _meta.review = "needs-native-speaker-review")
 ├── components/
+│   ├── i18n/LocaleSwitcher.tsx     # Client popover — globe + ISO code, 4 native endonyms, keyboard nav
 │   ├── layout/Navbar.tsx           # Desktop top nav + mobile bottom tabs (i18n via "navbar")
 │   └── ui/                         # Button, Input, StatusBadge (i18n via "status"), StarRating
 ├── lib/
@@ -222,14 +225,15 @@ supabase/
 
 ## Pending / WIP
 
-**Phase A** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, and `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review). Phase B (locale-switcher UI), Phase C (DM Sans `latin-ext` subset), and Phase D (`profiles.preferred_locale` migration + recipient-locale WhatsApp + SEO `hreflang`/sitemap) are **not started**.
+**Phases A and B** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review), and the `LocaleSwitcher` is wired into both the Navbar and the `(auth)` layout. The `profiles.preferred_locale` column (originally Phase D) was pulled forward as part of B.4 to enable cross-device locale memory. Phase C (DM Sans `latin-ext` subset) and the rest of Phase D (recipient-locale WhatsApp + SEO `hreflang`/sitemap) are **not started**.
+
+**Action required before deploy**: the migration file `supabase/migrations/20260427000001_add_preferred_locale.sql` is committed but **not yet applied to the linked Supabase project** — `pnpm dlx supabase db push` currently fails on a parse error in `supabase/config.toml` (the `[functions.expire-trips].schedule` key is no longer recognised by CLI 2.95.5). Resolve the config issue, then `supabase db push --include-all` and regenerate `database.types.ts` from the linked DB. Until applied, `setLocale` will log `permission denied` / `column does not exist` errors when an authenticated user switches language, but the cookie write and request-time switch still work.
 
 The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is fully executed.
 
 Natural next candidates (not started):
-- **i18n Phase B**: `LocaleSwitcher` component, wired into Navbar (desktop + mobile dropdown) and `(auth)/layout.tsx`.
 - **i18n Phase C**: extend DM Sans subsets to `["latin", "latin-ext"]` for German umlauts + Albanian ç/ë.
-- **i18n Phase D**: Supabase migration adding `profiles.preferred_locale text default 'fr' check (in 'fr','en','de','sq')`; switch `getWhatsAppLink` to recipient's preferred locale; emit `metadata.alternates.languages` and a `sitemap.ts`.
+- **i18n Phase D (remaining)**: switch `getWhatsAppLink` to read the **recipient's** `preferred_locale` so the message is composed in the other party's language; emit `metadata.alternates.languages` and a `sitemap.ts` for SEO `hreflang` coverage.
 - **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`.
 - Driver can edit a trip (only cancel + create today).
 - Pagination / infinite scroll on `/trips` (currently unbounded list).
@@ -268,4 +272,4 @@ Natural next candidates (not started):
    Every `sq/*.json` carries `_meta.review = "needs-native-speaker-review"`. Strings were generated by Claude based on plausible Albanian phrasing for the diaspora context but have not been reviewed by a native speaker. Sample non-trivial choices the reviewer should sanity-check: pronoun politeness on the auth pages, "shoferin tuaj"/"pasagjerin tuaj" definite-form choice, Kosovo/Albania orthography conventions in city labels (we kept "Genevë", "Mynih", "Cyrih" which may not all be canonical), and pluralisation behaviour in ICU plurals (Albanian is `one|other`, but the natural phrasing in the `other` branch may need adjustments).
 
 9. **WhatsApp body uses caller locale, not recipient locale.**
-   `getWhatsAppLink` currently calls `await getTranslations("bookings.whatsapp")` against the request's locale — i.e. the locale of whoever clicked "Contact". The recipient may have set a different `NEXT_LOCALE` cookie. Fixing this requires the Phase D migration that adds `profiles.preferred_locale` so the action can look up the *other party's* preference. Mitigation today: short, structurally similar bodies across all four locales — no information loss, just a slight tone mismatch.
+   `getWhatsAppLink` currently calls `await getTranslations("bookings.whatsapp")` against the request's locale — i.e. the locale of whoever clicked "Contact". The dependency that blocked the fix is now lifted: `profiles.preferred_locale` exists (Phase B.4 pulled it forward from Phase D) and is populated for any user who has touched the `LocaleSwitcher` while signed in. Remaining work is a one-call edit in `getWhatsAppLink` to look up the *other party's* preference and render the body against that locale. Mitigation today: short, structurally similar bodies across all four locales — no information loss, just a slight tone mismatch.
