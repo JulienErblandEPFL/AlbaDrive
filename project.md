@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-27 against branch `main` — Phase A and Phase B of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D, applied to the linked Supabase project, and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. Phase C (font subsets) and the rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) are not started.
+> Last synced: 2026-04-27 against branch `main` — Phases A, B, and C of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), and a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout). The persistence column (`profiles.preferred_locale`) was pulled forward from Phase D, applied to the linked Supabase project, and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory. DM Sans now ships the `latin-ext` subset so German umlauts and Albanian ç/ë render in the brand font. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"`. The rest of Phase D (recipient-locale WhatsApp, SEO `hreflang` / sitemap) is not started.
 
 ---
 
@@ -225,12 +225,11 @@ supabase/
 
 ## Pending / WIP
 
-**Phases A and B** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review), and the `LocaleSwitcher` is wired into both the Navbar and the `(auth)` layout. The `profiles.preferred_locale` column (originally Phase D) was pulled forward as part of B.4 to enable cross-device locale memory. Phase C (DM Sans `latin-ext` subset) and the rest of Phase D (recipient-locale WhatsApp + SEO `hreflang`/sitemap) are **not started**.
+**Phases A, B, and C** of the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) are complete on `main` — `fr` is fully populated, all routes are locale-prefixed, the error-code contract is in force, `en/de/sq` bundles are populated to translate-test parity (Albanian flagged for native review), the `LocaleSwitcher` is wired into both the Navbar and the `(auth)` layout, and DM Sans is configured with the `["latin", "latin-ext"]` subset set. The `profiles.preferred_locale` column (originally Phase D) was pulled forward as part of B.4 to enable cross-device locale memory. Only Phase D-remainder (recipient-locale WhatsApp + SEO `hreflang`/sitemap) is **not started**.
 
 The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is fully executed.
 
 Natural next candidates (not started):
-- **i18n Phase C**: extend DM Sans subsets to `["latin", "latin-ext"]` for German umlauts + Albanian ç/ë.
 - **i18n Phase D (remaining)**: switch `getWhatsAppLink` to read the **recipient's** `preferred_locale` so the message is composed in the other party's language; emit `metadata.alternates.languages` and a `sitemap.ts` for SEO `hreflang` coverage.
 - **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`.
 - Driver can edit a trip (only cancel + create today).

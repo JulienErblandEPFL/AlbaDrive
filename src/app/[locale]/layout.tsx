@@ -8,7 +8,10 @@ import "../globals.css";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
-  subsets: ["latin"],
+  // latin-ext covers the German umlauts (ä, ö, ü, ß) and the Albanian ç/ë
+  // we ship in the de/sq message bundles. Cost: ~10–15 KB per weight on top
+  // of the base latin subset; cheap relative to a full multilingual UI.
+  subsets: ["latin", "latin-ext"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
 });
