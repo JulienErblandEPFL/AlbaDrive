@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-27 against branch `main` — the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is **complete across all four phases**. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout), `profiles.preferred_locale` is applied to the linked Supabase project and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory, DM Sans ships the `latin-ext` subset for German umlauts and Albanian ç/ë, WhatsApp pre-filled bodies are composed in the **recipient's** locale, and public pages emit `hreflang` alternates + a `/sitemap.xml` for SEO. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"` pending a native-speaker pass.
+> Last synced: 2026-04-27 against branch `main` — the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is **complete across all four phases**. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout), `profiles.preferred_locale` is applied to the linked Supabase project and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory, DM Sans ships the `latin-ext` subset for German umlauts and Albanian ç/ë, WhatsApp pre-filled bodies are composed in the **recipient's** locale, and public pages emit `hreflang` alternates + a `/sitemap.xml` for SEO. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"` pending a native-speaker pass. **Proximity-aware search** ships on `/trips`: the `CityCombobox` is strict-select, query inputs expand to a 50 km neighbourhood via pure helpers in `src/lib/geo/`, results are tiered ("Depuis {city}" / "À proximité"), and an empty-state secondary query within 100 km surfaces the closest origins with trips as suggestion cards. All proximity work runs on the existing 48-city allowlist — no PostGIS, no external geocoder.
 
 ---
 
@@ -104,6 +104,11 @@ src/
 │   ├── validations/{auth,trip,booking,review}.schema.ts   # codes-as-messages
 │   ├── reviews/display-name.ts     # pseudonymizeName helper (+ tests)
 │   ├── constants/cities.ts         # 48 pre-geocoded cities; country = ISO-3166 code
+│   ├── geo/                        # Pure proximity helpers — no PostGIS, no external geocoder
+│   │   ├── config.ts               # PROXIMITY_RADIUS_KM=50, NEARBY_RADIUS_KM=100, MAX_TRIPS_PER_PAGE=100, MAX_SUGGESTION_CANDIDATES=50, MAX_SUGGESTIONS=3
+│   │   ├── haversine.ts            # great-circle distance over WGS84 city coordinates
+│   │   ├── normalize.ts            # NFD diacritic strip — "shkoder" matches "Shkodër"
+│   │   └── expand.ts               # findCityFlexible + expandCityToNearby (returns {origin, sorted matches})
 │   ├── intl/date.ts                # locale-aware date-fns wrapper + useFormatLocalizedDate
 │   ├── intl/seo.ts                 # buildLocaleAlternates, buildCanonical, getOgLocale (used by every public page)
 │   ├── intl/translate.test.ts      # parity test — every fr/* key exists in en/de/sq
@@ -168,9 +173,10 @@ supabase/
 ### Trips
 - **Create** (`createTrip`) — zod-validated, sets `available_seats = total_seats`, driver enforced to `auth.uid()`.
 - **Cancel** (`cancelTrip`) — ownership + non-terminal status check; DB trigger cascades to bookings.
-- **Browse** (`/trips`) — public search with `from`/`to`/`date` query params; ILIKE on JSONB labels; excludes the current user's own trips; batch-fetches driver names from `profiles_public`.
+- **Browse** (`/trips`) — public search with `from`/`to`/`date` query params. The `CityCombobox` is strict-select: typed input either resolves to a known canonical label (via diacritic-insensitive match — "munchen" → "München", "shkoder" → "Shkodër") or clears on blur, so the page only ever sees allowlisted cities. Each side of the search expands to all cities within `PROXIMITY_RADIUS_KM` (50 km) of the resolved point via `expandCityToNearby` (`src/lib/geo/expand.ts`); the query uses `.or(origin->>label.eq.X, …)` clauses on canonical labels with `LIMIT 100` enforced server-side (no JS `.slice()` after fetch). Results are split in JS into a primary "Depuis {city}" section and a lighter-weight "À proximité" section whenever the `from` input matched a known city. The current user's own trips are excluded; driver names + aggregate ratings come from `profiles_public`.
+- **Browse — empty-state suggestions** — when the primary query returns 0 results AND `from` matched a known city, a secondary aggregation query (`LIMIT 50` at the Supabase layer, inheriting `to`/`date` filters and dropping `from`) groups its candidates by origin city, keeps only known cities within `NEARBY_RADIUS_KM` (100 km) of the user's input, sorts by ascending distance, and surfaces the closest 3 as `SuggestionCards` beneath the empty-state message. Each card links to `/trips` with the suggested origin substituted.
 - **Detail** (`/trips/[id]`) — public; shows route, departure, seats, price, vehicle, notes, driver first-initial avatar, `BookingSection`; handles cancelled / full / own-trip / unauth states.
-- **List of cities** — 48 pre-geocoded cities across CH, DE, FR, AT, IT, BE, AL, XK, MK, RS (`src/lib/constants/cities.ts`).
+- **List of cities** — 48 pre-geocoded cities across CH, DE, FR, AT, IT, BE, AL, XK, MK, RS (`src/lib/constants/cities.ts`). Geographic helpers in `src/lib/geo/` (haversine, NFD-based diacritic normalize, expand) operate purely on this allowlist — no external geocoder, no PostGIS extensions.
 
 ### Bookings
 - **Request** (`requestBooking`) — verifies passenger has phone; blocks self-booking, closed trips, oversized requests; handles duplicate-unique-violation with a human message.
@@ -220,9 +226,10 @@ supabase/
 - `src/app/[locale]/(main)/reviews/actions.test.ts` — submitReview happy + rejection paths, getPassengerReviewSummary, getDriverReviewDetails (pseudonymisation round-trip).
 - `src/lib/reviews/display-name.test.ts` — pseudonymizeName edge cases.
 - `src/lib/intl/translate.test.ts` — parity check: every key path in `fr/{ns}.json` must exist in `en/`, `de/`, `sq/`. Catches missing translations at test time.
+- `src/lib/geo/{haversine,normalize,expand}.test.ts` — pure-helper tests covering haversine math against well-known city pairs (Genève↔Lausanne, Bern↔Biel/Bienne, München↔Augsburg, Pristina↔Tirana, antipodal sanity), diacritic round-trips for German umlauts and Albanian ç/ë (München, Shkodër, Korçë, Düsseldorf, Niš), and city expansion sort/radius semantics.
 - Shared Supabase mock factory (`src/lib/test-utils/supabase-mock.ts`) — `MOCK_USER`/`MOCK_PASSENGER` IDs are RFC 4122 UUID-v4 shape so they pass zod's `.uuid()` check.
 - `vitest.setup.ts` stubs `next/cache` and `next/headers`.
-- Server-action assertions are now keyed on error **codes** (`expect(result.error.code).toBe("errors.booking.self_booking")`) — locale-agnostic. 77 tests, all green.
+- Server-action assertions are now keyed on error **codes** (`expect(result.error.code).toBe("errors.booking.self_booking")`) — locale-agnostic. 122 tests, all green.
 
 ---
 
@@ -233,7 +240,7 @@ The **i18n migration is fully done** (`/home/julienerbland/.claude/plans/zany-sq
 Natural next candidates (not started):
 - **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`. The largest open i18n risk.
 - Driver can edit a trip (only cancel + create today).
-- Pagination / infinite scroll on `/trips` (currently unbounded list).
+- Pagination / infinite scroll on `/trips` — capped at `MAX_TRIPS_PER_PAGE` (100) today; page 2+ is not yet implemented.
 - Notifications (email on booking accepted/declined — no provider wired).
 - OAuth provider config (Google) — the callback route exists but no `.env.local` entries.
 - Avatar upload (`profiles.avatar_url` is present in the schema but no upload path).
@@ -253,8 +260,8 @@ Natural next candidates (not started):
 3. **`signOut` Server Action is inconsistent with the `ActionResult` contract.**
    Every other action returns `{ success, error? }`; `signOut` is typed `Promise<never>` and just calls `redirect()`. Defensible (there's no failure surface worth reporting), but worth noting if consumers start trying `.success` on its result.
 
-4. **Search on `/trips` is unbounded.**
-   Query does `ILIKE '%{from}%'` on JSONB labels without `.limit()`. With the existing partial indexes on `(lower(origin->>'label'))` / `(lower(destination->>'label'))` performance is fine for the MVP, but pagination will be needed before opening beyond a test group.
+4. **Trip-list query doesn't fully exploit the JSONB indexes — re-evaluate at ~10k open rows.**
+   Search filters expand to a list of canonical city labels via `expandCityToNearby` and apply `.or(origin->>label.eq.X, …)` (and the same on `destination->>label`). The existing partial indexes are on `lower(origin->>'label')` / `lower(destination->>'label')` — case-folded, so they don't match equality on the raw extracted text. Today the `(status, departure_at) WHERE deleted_at IS NULL AND status IN ('open','full')` partial index keeps the candidate set small enough that a final equality filter is cheap, and the query is capped at `LIMIT 100` server-side. When the open-trip count exceeds ~10k rows, add either a B-tree directly on `(origin->>'label')` (and the destination counterpart), or a generated canonical-label column with an exact index, so equality lookups stop relying on the seq-scan path.
 
 5. **No observability.**
    Errors are `console.error`'d server-side (e.g. `[createTrip]`, `[requestBooking]`) but no Sentry / Log Drain. On Vercel Functions these land in platform logs only.
