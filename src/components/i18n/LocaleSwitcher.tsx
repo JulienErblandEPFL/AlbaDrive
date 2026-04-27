@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useId, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { ChevronDown, Check, Globe } from "lucide-react";
@@ -24,7 +24,28 @@ interface LocaleSwitcherProps {
   className?: string;
 }
 
-export function LocaleSwitcher({ className = "" }: LocaleSwitcherProps) {
+// useSearchParams() bails statically-rendered pages out of SSG. We cap the
+// blast radius with a Suspense boundary at the export so consumers don't have
+// to know about it, and pages that include the switcher (e.g. /complete-profile)
+// can still be prerendered.
+export function LocaleSwitcher(props: LocaleSwitcherProps) {
+  return (
+    <Suspense fallback={<LocaleSwitcherFallback className={props.className} />}>
+      <LocaleSwitcherImpl {...props} />
+    </Suspense>
+  );
+}
+
+function LocaleSwitcherFallback({ className = "" }: LocaleSwitcherProps) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`${className} inline-flex h-9 w-[72px] rounded-xl border border-stone-200 bg-stone-50`}
+    />
+  );
+}
+
+function LocaleSwitcherImpl({ className = "" }: LocaleSwitcherProps) {
   const currentLocale = useLocale() as SupportedLocale;
   const t = useTranslations("localeSwitcher");
   const pathname = usePathname();
