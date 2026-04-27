@@ -10,6 +10,12 @@ import { SearchBar } from "./components/SearchBar";
 import { MapPin } from "lucide-react";
 import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb } from "@/types/database.types";
+import {
+  buildCanonical,
+  buildLocaleAlternates,
+  getOgAlternateLocales,
+  getOgLocale,
+} from "@/lib/intl/seo";
 
 export async function generateMetadata({
   params,
@@ -18,7 +24,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "trips.metadata" });
-  return { title: t("searchTitle") };
+  return {
+    title: t("searchTitle"),
+    alternates: {
+      canonical: buildCanonical(locale, "/trips"),
+      languages: buildLocaleAlternates("/trips"),
+    },
+    openGraph: {
+      title: t("searchTitle"),
+      locale: getOgLocale(locale),
+      alternateLocale: getOgAlternateLocales(locale),
+      type: "website",
+    },
+  };
 }
 
 type SearchParams = {

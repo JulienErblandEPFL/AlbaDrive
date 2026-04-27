@@ -11,6 +11,12 @@ import { StarRating } from "@/components/ui/StarRating";
 import { formatLocalizedDate } from "@/lib/intl/date";
 import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb, TripStatus } from "@/types/database.types";
+import {
+  buildCanonical,
+  buildLocaleAlternates,
+  getOgAlternateLocales,
+  getOgLocale,
+} from "@/lib/intl/seo";
 
 export async function generateMetadata({
   params,
@@ -27,15 +33,31 @@ export async function generateMetadata({
     .single();
 
   const tMeta = await getTranslations({ locale, namespace: "trips.metadata" });
-  if (!trip) return { title: tMeta("detailFallbackTitle") };
+  const pathSuffix = `/trips/${id}`;
+  const seoBase = {
+    alternates: {
+      canonical: buildCanonical(locale, pathSuffix),
+      languages: buildLocaleAlternates(pathSuffix),
+    },
+    openGraph: {
+      locale: getOgLocale(locale),
+      alternateLocale: getOgAlternateLocales(locale),
+      type: "article" as const,
+    },
+  };
+
+  if (!trip) return { title: tMeta("detailFallbackTitle"), ...seoBase };
 
   const tDate = await getTranslations({ locale, namespace: "common.dateFormat" });
   const origin = (trip.origin as unknown as LocationJsonb).label;
   const destination = (trip.destination as unknown as LocationJsonb).label;
   const date = formatLocalizedDate(trip.departure_at, tDate("metaShort"), locale);
+  const title = tMeta("detailTitle", { origin, destination, date });
 
   return {
-    title: tMeta("detailTitle", { origin, destination, date }),
+    title,
+    ...seoBase,
+    openGraph: { ...seoBase.openGraph, title },
   };
 }
 

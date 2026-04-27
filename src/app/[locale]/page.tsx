@@ -9,6 +9,12 @@ import { createServerClient } from "@/lib/supabase/server";
 import { SearchBar } from "./(main)/trips/components/SearchBar";
 import { Car, ArrowRight, Search, UserCheck, MessageCircle } from "lucide-react";
 import type { SupportedLocale } from "@/i18n/routing";
+import {
+  buildCanonical,
+  buildLocaleAlternates,
+  getOgAlternateLocales,
+  getOgLocale,
+} from "@/lib/intl/seo";
 
 export async function generateMetadata({
   params,
@@ -20,6 +26,17 @@ export async function generateMetadata({
   return {
     title: t("title"),
     description: t("description"),
+    alternates: {
+      canonical: buildCanonical(locale, ""),
+      languages: buildLocaleAlternates(""),
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      locale: getOgLocale(locale),
+      alternateLocale: getOgAlternateLocales(locale),
+      type: "website",
+    },
   };
 }
 
