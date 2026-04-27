@@ -19,7 +19,9 @@
     "emptyViewAll": "Voir tous les trajets",
     "emptyPropose": "Proposer un trajet",
     "primarySection": "Depuis {city}",
-    "nearbySection": "À proximité"
+    "nearbySection": "À proximité",
+    "suggestionsTitle": "Essayez une ville voisine",
+    "suggestionTrips": "{count, plural, one {# trajet disponible} other {# trajets disponibles}}"
   },
   "searchBar": {
     "originLabel": "Départ",

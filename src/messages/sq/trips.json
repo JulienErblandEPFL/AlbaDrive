@@ -22,7 +22,9 @@
     "emptyViewAll": "Shikoni të gjitha udhëtimet",
     "emptyPropose": "Propozoni një udhëtim",
     "primarySection": "Nga {city}",
-    "nearbySection": "Afër"
+    "nearbySection": "Afër",
+    "suggestionsTitle": "Provoni një qytet të afërt",
+    "suggestionTrips": "{count, plural, one {# udhëtim i disponueshëm} other {# udhëtime të disponueshme}}"
   },
   "searchBar": {
     "originLabel": "Nisja",

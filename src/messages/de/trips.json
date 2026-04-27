@@ -19,7 +19,9 @@
     "emptyViewAll": "Alle Fahrten anzeigen",
     "emptyPropose": "Fahrt anbieten",
     "primarySection": "Ab {city}",
-    "nearbySection": "In der Nähe"
+    "nearbySection": "In der Nähe",
+    "suggestionsTitle": "Versuchen Sie eine nahegelegene Stadt",
+    "suggestionTrips": "{count, plural, one {# Fahrt verfügbar} other {# Fahrten verfügbar}}"
   },
   "searchBar": {
     "originLabel": "Von",

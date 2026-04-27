@@ -12,9 +12,15 @@ import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb } from "@/types/database.types";
 import {
   expandCityToNearby,
+  findCityFlexible,
+  haversineKm,
+  MAX_SUGGESTION_CANDIDATES,
+  MAX_SUGGESTIONS,
   MAX_TRIPS_PER_PAGE,
+  NEARBY_RADIUS_KM,
   PROXIMITY_RADIUS_KM,
 } from "@/lib/geo";
+import type { City } from "@/lib/constants/cities";
 import {
   buildCanonical,
   buildLocaleAlternates,
@@ -160,6 +166,61 @@ export default async function TripsPage({
   const isFiltered = !!(from || to || date);
   const summaryKey = isFiltered ? "summaryFound" : "summaryAvailable";
 
+  // Empty-state fallback: when the primary query returned 0 results AND the
+  // user provided a known origin, suggest nearby origins with trips. The
+  // secondary query inherits to/date filters but drops the from filter; we
+  // aggregate by origin city in JS, keep only known cities within
+  // NEARBY_RADIUS_KM, and surface the closest MAX_SUGGESTIONS.
+  type Suggestion = { city: City; count: number; distanceKm: number };
+  let suggestions: Suggestion[] = [];
+  if (browsableTrips.length === 0 && fromExpansion?.origin) {
+    let suggestQuery = supabase
+      .from("trips")
+      .select("origin, driver_id")
+      .eq("status", "open")
+      .is("deleted_at", null)
+      .gt("departure_at", now)
+      .order("departure_at", { ascending: true })
+      .limit(MAX_SUGGESTION_CANDIDATES);
+    if (toExpansion?.origin) {
+      const labels = toExpansion.matches.map((m) => m.city.label);
+      suggestQuery = suggestQuery.or(
+        labels.map((l) => `destination->>label.eq.${l}`).join(","),
+      );
+    }
+    if (date?.trim()) {
+      suggestQuery = suggestQuery
+        .gte("departure_at", `${date}T00:00:00.000Z`)
+        .lte("departure_at", `${date}T23:59:59.999Z`);
+    }
+    const { data: candidates } = await suggestQuery;
+    const fromCity = fromExpansion.origin;
+    const counts = new Map<string, Suggestion>();
+    for (const c of candidates ?? []) {
+      if (c.driver_id === user?.id) continue;
+      const originLabel = (c.origin as { label?: string }).label;
+      if (!originLabel) continue;
+      const knownCity = findCityFlexible(originLabel);
+      if (!knownCity) continue;
+      if (knownCity.label === fromCity.label) continue;
+      const distance = haversineKm(fromCity, knownCity);
+      if (distance > NEARBY_RADIUS_KM) continue;
+      const existing = counts.get(knownCity.label);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        counts.set(knownCity.label, {
+          city: knownCity,
+          count: 1,
+          distanceKm: distance,
+        });
+      }
+    }
+    suggestions = Array.from(counts.values())
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, MAX_SUGGESTIONS);
+  }
+
   return (
     <div>
       {/* ── Photo banner with SearchBar ─────────────────────── */}
@@ -208,32 +269,69 @@ export default async function TripsPage({
 
       {/* Trip list */}
       {browsableTrips.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-stone-200 rounded-2xl bg-white">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
-            <MapPin className="w-5 h-5 text-stone-400" aria-hidden="true" />
+        <div className="flex flex-col gap-6">
+          <div className="text-center py-16 border border-dashed border-stone-200 rounded-2xl bg-white">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
+              <MapPin className="w-5 h-5 text-stone-400" aria-hidden="true" />
+            </div>
+            <p className="text-stone-900 font-semibold mb-1">
+              {isFiltered ? t("emptyNoResultsTitle") : t("emptyNoTripsTitle")}
+            </p>
+            <p className="text-stone-500 text-sm mb-6">
+              {isFiltered
+                ? t("emptyNoResultsDescription")
+                : t("emptyNoTripsDescription")}
+            </p>
+            {isFiltered ? (
+              <Link
+                href="/trips"
+                className="inline-flex items-center h-10 px-5 rounded-xl border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-stone-50 transition-colors"
+              >
+                {t("emptyViewAll")}
+              </Link>
+            ) : (
+              <Link
+                href={user ? "/trips/create" : "/register"}
+                className="inline-flex items-center h-10 px-5 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors"
+              >
+                {t("emptyPropose")}
+              </Link>
+            )}
           </div>
-          <p className="text-stone-900 font-semibold mb-1">
-            {isFiltered ? t("emptyNoResultsTitle") : t("emptyNoTripsTitle")}
-          </p>
-          <p className="text-stone-500 text-sm mb-6">
-            {isFiltered
-              ? t("emptyNoResultsDescription")
-              : t("emptyNoTripsDescription")}
-          </p>
-          {isFiltered ? (
-            <Link
-              href="/trips"
-              className="inline-flex items-center h-10 px-5 rounded-xl border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-stone-50 transition-colors"
-            >
-              {t("emptyViewAll")}
-            </Link>
-          ) : (
-            <Link
-              href={user ? "/trips/create" : "/register"}
-              className="inline-flex items-center h-10 px-5 rounded-xl bg-red-800 text-white text-sm font-semibold hover:bg-red-900 transition-colors"
-            >
-              {t("emptyPropose")}
-            </Link>
+          {suggestions.length > 0 && (
+            <section aria-labelledby="suggestions-heading">
+              <h2
+                id="suggestions-heading"
+                className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3"
+              >
+                {t("suggestionsTitle")}
+              </h2>
+              <ul className="grid sm:grid-cols-3 gap-3">
+                {suggestions.map((s) => {
+                  const params = new URLSearchParams();
+                  params.set("from", s.city.label);
+                  if (toExpansion?.origin) {
+                    params.set("to", toExpansion.origin.label);
+                  }
+                  if (date?.trim()) params.set("date", date);
+                  return (
+                    <li key={s.city.label}>
+                      <Link
+                        href={`/trips?${params.toString()}`}
+                        className="block bg-white border border-stone-200 rounded-2xl px-4 py-4 hover:border-red-300 hover:shadow-sm transition-all duration-150"
+                      >
+                        <p className="font-semibold text-stone-900">
+                          {s.city.label}
+                        </p>
+                        <p className="text-xs text-stone-500 mt-1">
+                          {t("suggestionTrips", { count: s.count })}
+                        </p>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           )}
         </div>
       ) : tierEnabled ? (

@@ -19,7 +19,9 @@
     "emptyViewAll": "View all trips",
     "emptyPropose": "Offer a trip",
     "primarySection": "From {city}",
-    "nearbySection": "Nearby"
+    "nearbySection": "Nearby",
+    "suggestionsTitle": "Try a nearby city",
+    "suggestionTrips": "{count, plural, one {# trip available} other {# trips available}}"
   },
   "searchBar": {
     "originLabel": "From",
