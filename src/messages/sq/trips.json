@@ -20,7 +20,9 @@
     "emptyNoTripsTitle": "Asnjë udhëtim i disponueshëm",
     "emptyNoTripsDescription": "Bëhuni i pari që propozon një udhëtim në korridor.",
     "emptyViewAll": "Shikoni të gjitha udhëtimet",
-    "emptyPropose": "Propozoni një udhëtim"
+    "emptyPropose": "Propozoni një udhëtim",
+    "primarySection": "Nga {city}",
+    "nearbySection": "Afër"
   },
   "searchBar": {
     "originLabel": "Nisja",

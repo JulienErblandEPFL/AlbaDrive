@@ -17,7 +17,9 @@
     "emptyNoTripsTitle": "No trips available",
     "emptyNoTripsDescription": "Be the first to offer a trip on the corridor.",
     "emptyViewAll": "View all trips",
-    "emptyPropose": "Offer a trip"
+    "emptyPropose": "Offer a trip",
+    "primarySection": "From {city}",
+    "nearbySection": "Nearby"
   },
   "searchBar": {
     "originLabel": "From",

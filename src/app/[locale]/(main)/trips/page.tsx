@@ -11,6 +11,11 @@ import { MapPin } from "lucide-react";
 import type { SupportedLocale } from "@/i18n/routing";
 import type { LocationJsonb } from "@/types/database.types";
 import {
+  expandCityToNearby,
+  MAX_TRIPS_PER_PAGE,
+  PROXIMITY_RADIUS_KM,
+} from "@/lib/geo";
+import {
   buildCanonical,
   buildLocaleAlternates,
   getOgAlternateLocales,
@@ -64,7 +69,19 @@ export default async function TripsPage({
 
   const now = new Date().toISOString();
 
-  // Build filtered query
+  // Expand city inputs to nearby cities (within PROXIMITY_RADIUS_KM).
+  // If input doesn't match a known city, expansion.origin is null and we
+  // skip that side of the filter (per Bonus Option (i): run the search
+  // anyway with whatever's recognized).
+  const fromExpansion = from?.trim()
+    ? expandCityToNearby(from, PROXIMITY_RADIUS_KM)
+    : null;
+  const toExpansion = to?.trim()
+    ? expandCityToNearby(to, PROXIMITY_RADIUS_KM)
+    : null;
+
+  // Build filtered query — LIMIT enforced at the Supabase query layer so
+  // Postgres can short-circuit; never rely on JS .slice() after fetching.
   let query = supabase
     .from("trips")
     .select(
@@ -73,13 +90,20 @@ export default async function TripsPage({
     .eq("status", "open")
     .is("deleted_at", null)
     .gt("departure_at", now)
-    .order("departure_at", { ascending: true });
+    .order("departure_at", { ascending: true })
+    .limit(MAX_TRIPS_PER_PAGE);
 
-  if (from?.trim()) {
-    query = query.filter("origin->>label", "ilike", `%${from.trim()}%`);
+  if (fromExpansion?.origin) {
+    const labels = fromExpansion.matches.map((m) => m.city.label);
+    query = query.or(
+      labels.map((l) => `origin->>label.eq.${l}`).join(","),
+    );
   }
-  if (to?.trim()) {
-    query = query.filter("destination->>label", "ilike", `%${to.trim()}%`);
+  if (toExpansion?.origin) {
+    const labels = toExpansion.matches.map((m) => m.city.label);
+    query = query.or(
+      labels.map((l) => `destination->>label.eq.${l}`).join(","),
+    );
   }
   if (date?.trim()) {
     // Filter for the whole calendar day (UTC)
@@ -93,6 +117,22 @@ export default async function TripsPage({
 
   // Exclude the driver's own trips from browse view
   const browsableTrips = trips.filter((t) => t.driver_id !== user?.id);
+
+  // Tier the results into "primary" (origin matches the canonical from-city
+  // exactly) and "nearby" (origin within radius but a different city). Only
+  // active when the from input resolved to a known city.
+  const fromOriginLabel = fromExpansion?.origin?.label ?? null;
+  const primaryTrips = fromOriginLabel
+    ? browsableTrips.filter(
+        (t) => (t.origin as { label?: string }).label === fromOriginLabel,
+      )
+    : browsableTrips;
+  const nearbyTrips = fromOriginLabel
+    ? browsableTrips.filter(
+        (t) => (t.origin as { label?: string }).label !== fromOriginLabel,
+      )
+    : [];
+  const tierEnabled = fromOriginLabel !== null;
 
   // Batch-fetch driver names + aggregate ratings (from profiles_public view)
   const driverIds = [...new Set(browsableTrips.map((t) => t.driver_id))];
@@ -194,6 +234,61 @@ export default async function TripsPage({
             >
               {t("emptyPropose")}
             </Link>
+          )}
+        </div>
+      ) : tierEnabled ? (
+        <div className="flex flex-col gap-8">
+          {primaryTrips.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold text-stone-700 mb-3">
+                {t("primarySection", { city: fromOriginLabel })}
+              </h2>
+              <div className="flex flex-col gap-4">
+                {primaryTrips.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={{
+                      ...trip,
+                      origin: trip.origin as unknown as LocationJsonb,
+                      destination: trip.destination as unknown as LocationJsonb,
+                      price_per_seat: trip.price_per_seat
+                        ? Number(trip.price_per_seat)
+                        : null,
+                    }}
+                    driverName={driverById[trip.driver_id]?.name ?? tCard("driverFallback")}
+                    driverRatingAvg={driverById[trip.driver_id]?.rating_avg ?? 0}
+                    driverRatingCount={driverById[trip.driver_id]?.rating_count ?? 0}
+                    currentUserId={user?.id ?? ""}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          {nearbyTrips.length > 0 && (
+            <section>
+              <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
+                {t("nearbySection")}
+              </h2>
+              <div className="flex flex-col gap-4">
+                {nearbyTrips.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={{
+                      ...trip,
+                      origin: trip.origin as unknown as LocationJsonb,
+                      destination: trip.destination as unknown as LocationJsonb,
+                      price_per_seat: trip.price_per_seat
+                        ? Number(trip.price_per_seat)
+                        : null,
+                    }}
+                    driverName={driverById[trip.driver_id]?.name ?? tCard("driverFallback")}
+                    driverRatingAvg={driverById[trip.driver_id]?.rating_avg ?? 0}
+                    driverRatingCount={driverById[trip.driver_id]?.rating_count ?? 0}
+                    currentUserId={user?.id ?? ""}
+                  />
+                ))}
+              </div>
+            </section>
           )}
         </div>
       ) : (

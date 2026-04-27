@@ -17,7 +17,9 @@
     "emptyNoTripsTitle": "Aucun trajet disponible",
     "emptyNoTripsDescription": "Soyez le premier à proposer un trajet sur le corridor.",
     "emptyViewAll": "Voir tous les trajets",
-    "emptyPropose": "Proposer un trajet"
+    "emptyPropose": "Proposer un trajet",
+    "primarySection": "Depuis {city}",
+    "nearbySection": "À proximité"
   },
   "searchBar": {
     "originLabel": "Départ",

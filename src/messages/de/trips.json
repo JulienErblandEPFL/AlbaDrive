@@ -17,7 +17,9 @@
     "emptyNoTripsTitle": "Keine Fahrten verfügbar",
     "emptyNoTripsDescription": "Seien Sie der oder die Erste, die eine Fahrt auf dem Korridor anbietet.",
     "emptyViewAll": "Alle Fahrten anzeigen",
-    "emptyPropose": "Fahrt anbieten"
+    "emptyPropose": "Fahrt anbieten",
+    "primarySection": "Ab {city}",
+    "nearbySection": "In der Nähe"
   },
   "searchBar": {
     "originLabel": "Von",
