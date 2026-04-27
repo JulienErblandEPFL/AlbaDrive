@@ -1,6 +1,7 @@
 // Shared layout for all auth pages: /login, /register, /complete-profile
 import { getTranslations } from "next-intl/server";
 import type { SupportedLocale } from "@/i18n/routing";
+import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 
 /** Decorative route line — visually communicates the carpooling concept */
 function RouteVisual() {
@@ -122,7 +123,12 @@ export default async function AuthLayout({
       </div>
 
       {/* ── Right panel — form area ───────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-stone-50 px-5 py-10 sm:px-8">
+      <div className="relative flex-1 flex flex-col items-center justify-center bg-stone-50 px-5 py-10 sm:px-8">
+        {/* Locale switcher — pinned top-right (only top-of-page UI in this layout) */}
+        <div className="absolute top-4 right-4 z-10">
+          <LocaleSwitcher />
+        </div>
+
         {/* Mobile logo — only visible on small screens */}
         <div className="lg:hidden mb-8 text-stone-900">
           <AlbaDriveLogo size="lg" />
