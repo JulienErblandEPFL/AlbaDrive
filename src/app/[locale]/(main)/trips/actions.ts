@@ -4,6 +4,10 @@
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { createTripSchema, cancelTripSchema } from "@/lib/validations/trip.schema";
+import {
+  getSuggestedPriceRange as suggestPriceRange,
+  type PriceRangeResult,
+} from "@/lib/pricing";
 import type { ActionResult } from "@/types/actions";
 import type { TripRow } from "@/types/database.types";
 
@@ -85,4 +89,39 @@ export async function cancelTrip(rawData: unknown): Promise<ActionResult> {
 
   revalidatePath("/trips");
   return { success: true };
+}
+
+export async function getSuggestedPriceRange(input: {
+  originLabel: string;
+  destinationLabel: string;
+}): Promise<ActionResult<PriceRangeResult | null>> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: { code: "errors.common.auth_required" } };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("country")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  try {
+    const result = await suggestPriceRange({
+      originLabel: input.originLabel,
+      destinationLabel: input.destinationLabel,
+      driverCountry: profile?.country ?? null,
+    });
+    return { success: true, data: result };
+  } catch (err) {
+    console.error("[getSuggestedPriceRange]", (err as Error).message);
+    return {
+      success: false,
+      error: { code: "errors.pricing.suggestion_failed" },
+    };
+  }
 }

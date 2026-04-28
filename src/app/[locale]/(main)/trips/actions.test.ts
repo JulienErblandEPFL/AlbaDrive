@@ -3,9 +3,19 @@ import type { ActionError } from "@/types/actions";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@/lib/supabase/server";
 import { buildSupabaseMock, MOCK_USER } from "@/lib/test-utils/supabase-mock";
-import { createTrip, cancelTrip } from "./actions";
+import { createTrip, cancelTrip, getSuggestedPriceRange } from "./actions";
+import { getSuggestedPriceRange as orchestrator } from "@/lib/pricing";
 
 vi.mock("@/lib/supabase/server");
+vi.mock("@/lib/pricing", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/pricing")>(
+    "@/lib/pricing",
+  );
+  return {
+    ...actual,
+    getSuggestedPriceRange: vi.fn(),
+  };
+});
 
 const VALID_TRIP_INPUT = {
   origin: { label: "Genève, Suisse", lat: 46.2044, lng: 6.1432, place_id: "node/1" },
@@ -166,5 +176,103 @@ describe("cancelTrip", () => {
     const result = await cancelTrip({ trip_id: "00000000-0000-0000-0000-000000000000" });
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe("getSuggestedPriceRange (Server Action)", () => {
+  let mockMaybeSingle: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const { mockClient, mockMaybeSingle: maybe } = buildSupabaseMock();
+    mockMaybeSingle = maybe;
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+  });
+
+  it("returns auth_required when not signed in", async () => {
+    const { mockClient } = buildSupabaseMock({
+      user: null,
+      authError: { message: "No session" },
+    });
+    vi.mocked(createServerClient).mockResolvedValue(mockClient as any);
+
+    const result = await getSuggestedPriceRange({
+      originLabel: "Bern",
+      destinationLabel: "Lyon",
+    });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: ActionError }).error.code).toBe(
+      "errors.common.auth_required",
+    );
+  });
+
+  it("returns success with the orchestrator result for an authed user", async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { country: "CH" },
+      error: null,
+    });
+    (orchestrator as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      range: { currency: "CHF", low: 15, typical: 17.5, high: 20.5 },
+      distanceKm: 280,
+      source: "ors",
+      fuelCountry: "CH",
+      chfPerKm: 0.0629,
+    });
+
+    const result = await getSuggestedPriceRange({
+      originLabel: "Bern",
+      destinationLabel: "Lyon",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data?.range.typical).toBe(17.5);
+      expect(result.data?.range.currency).toBe("CHF");
+      expect(result.data?.fuelCountry).toBe("CH");
+    }
+    // Driver country was passed through from the profile
+    expect(orchestrator).toHaveBeenCalledWith(
+      expect.objectContaining({ driverCountry: "CH" }),
+    );
+  });
+
+  it("returns success with data:null when orchestrator returns null", async () => {
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+    (orchestrator as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      null,
+    );
+
+    const result = await getSuggestedPriceRange({
+      originLabel: "Atlantis",
+      destinationLabel: "Lyon",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toBeNull();
+    // Profile lookup returned no row → driverCountry is null
+    expect(orchestrator).toHaveBeenCalledWith(
+      expect.objectContaining({ driverCountry: null }),
+    );
+  });
+
+  it("returns suggestion_failed when the orchestrator throws", async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { country: "CH" },
+      error: null,
+    });
+    (orchestrator as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error("kaboom"),
+    );
+
+    const result = await getSuggestedPriceRange({
+      originLabel: "Bern",
+      destinationLabel: "Lyon",
+    });
+
+    expect(result.success).toBe(false);
+    expect((result as { error: ActionError }).error.code).toBe(
+      "errors.pricing.suggestion_failed",
+    );
   });
 });

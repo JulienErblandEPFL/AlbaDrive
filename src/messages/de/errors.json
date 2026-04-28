@@ -36,6 +36,9 @@
     "contact_unavailable": "Kontaktdaten sind nicht verfügbar.",
     "no_phone": "Dein Profil hat keine Telefonnummer."
   },
+  "pricing": {
+    "suggestion_failed": "Preisempfehlung konnte nicht berechnet werden."
+  },
   "review": {
     "self_review": "Du kannst dich nicht selbst bewerten.",
     "trip_not_found": "Fahrt nicht gefunden.",

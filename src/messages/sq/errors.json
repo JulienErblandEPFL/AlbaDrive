@@ -40,6 +40,9 @@
     "contact_unavailable": "Të dhënat e kontaktit nuk janë të disponueshme.",
     "no_phone": "Profili juaj nuk ka numër telefoni."
   },
+  "pricing": {
+    "suggestion_failed": "Sugjerimi i çmimit nuk mund të llogaritet."
+  },
   "review": {
     "self_review": "Nuk mund të vlerësoni veten.",
     "trip_not_found": "Udhëtimi nuk u gjet.",

@@ -36,6 +36,9 @@
     "contact_unavailable": "Contact details are unavailable.",
     "no_phone": "Your profile does not have a phone number."
   },
+  "pricing": {
+    "suggestion_failed": "Couldn't compute a price suggestion."
+  },
   "review": {
     "self_review": "You can't review yourself.",
     "trip_not_found": "Trip not found.",

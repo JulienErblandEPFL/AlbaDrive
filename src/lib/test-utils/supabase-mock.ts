@@ -20,6 +20,7 @@ export function buildSupabaseMock({
   authError?: { message: string } | null;
 } = {}) {
   const mockSingle = vi.fn();
+  const mockMaybeSingle = vi.fn();
 
   const chain = {
     select: vi.fn().mockReturnThis(),
@@ -29,6 +30,7 @@ export function buildSupabaseMock({
     is: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     single: mockSingle,
+    maybeSingle: mockMaybeSingle,
   };
 
   const mockFrom = vi.fn().mockReturnValue(chain);
@@ -43,5 +45,5 @@ export function buildSupabaseMock({
     from: mockFrom,
   };
 
-  return { mockClient, mockSingle, mockFrom, chain };
+  return { mockClient, mockSingle, mockMaybeSingle, mockFrom, chain };
 }
