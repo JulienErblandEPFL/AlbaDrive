@@ -1,22 +1,38 @@
 // src/app/(auth)/complete-profile/CompleteProfileForm.tsx
 "use client";
 
-import { useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { CITIES } from "@/lib/constants/cities";
 import {
   completeProfileSchema,
   type CompleteProfileInput,
 } from "@/lib/validations/auth.schema";
 import { completeProfile } from "./actions";
 
+const LOCALE_COUNTRY_DEFAULT: Record<string, string | undefined> = {
+  fr: "CH",
+  de: "DE",
+  sq: "CH",
+  en: undefined,
+};
+
 export function CompleteProfileForm() {
   const [isPending, startTransition] = useTransition();
+  const locale = useLocale();
   const t = useTranslations();
   const tProfile = useTranslations("auth.completeProfile");
+  const tCountry = useTranslations("countries");
+
+  const countryCodes = useMemo(
+    () => Array.from(new Set(CITIES.map((c) => c.country))).sort(),
+    [],
+  );
+  const initialCountry = LOCALE_COUNTRY_DEFAULT[locale] ?? "";
 
   const {
     register,
@@ -25,11 +41,14 @@ export function CompleteProfileForm() {
     setError,
   } = useForm<CompleteProfileInput>({
     resolver: zodResolver(completeProfileSchema),
+    defaultValues: { country: initialCountry || undefined },
   });
 
   function onSubmit(data: CompleteProfileInput) {
+    const payload =
+      data.country === "" ? { ...data, country: undefined } : data;
     startTransition(async () => {
-      const result = await completeProfile(data);
+      const result = await completeProfile(payload);
       if (result && !result.success) {
         setError("root", { message: t(result.error.code, result.error.params) });
       }
@@ -75,6 +94,35 @@ export function CompleteProfileForm() {
           required
           {...register("phone")}
         />
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="country"
+            className="text-sm font-medium text-stone-700"
+          >
+            {tProfile("countryLabel")}
+          </label>
+          <select
+            id="country"
+            defaultValue={initialCountry}
+            {...register("country")}
+            className="h-12 w-full rounded-xl border border-stone-200 bg-white px-4 text-stone-900 text-base focus:border-red-800 focus:ring-2 focus:ring-red-100 outline-none cursor-pointer"
+          >
+            <option value="">{tProfile("countryEmpty")}</option>
+            {countryCodes.map((code) => (
+              <option key={code} value={code}>
+                {tCountry(code)}
+              </option>
+            ))}
+          </select>
+          {errors.country?.message ? (
+            <p role="alert" className="text-sm text-red-600">
+              {t(errors.country.message)}
+            </p>
+          ) : (
+            <p className="text-xs text-stone-500">{tProfile("countryHelp")}</p>
+          )}
+        </div>
 
         {errors.root && (
           <div
