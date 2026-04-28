@@ -17,6 +17,9 @@
     },
     "phone": {
       "format": "Formati i kërkuar: +41791234567 (filloni me kodin e shtetit)"
+    },
+    "country": {
+      "format": "Kod shteti i pavlefshëm (ISO 3166-1, p.sh. CH)"
     }
   },
   "trip": {

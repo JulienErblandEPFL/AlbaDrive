@@ -28,6 +28,10 @@ export const completeProfileSchema = z.object({
   phone: z
     .string()
     .regex(/^\+[1-9]\d{6,14}$/, "validation.auth.phone.format"),
+  country: z
+    .string()
+    .regex(/^[A-Z]{2}$/, "validation.auth.country.format")
+    .optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

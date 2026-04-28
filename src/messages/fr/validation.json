@@ -13,6 +13,9 @@
     },
     "phone": {
       "format": "Format requis : +41791234567 (commencez par l'indicatif pays)"
+    },
+    "country": {
+      "format": "Code pays invalide (ISO 3166-1, ex: CH)"
     }
   },
   "trip": {

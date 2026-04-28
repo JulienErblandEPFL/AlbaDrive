@@ -13,6 +13,9 @@
     },
     "phone": {
       "format": "Erforderliches Format: +41791234567 (mit Ländervorwahl beginnen)"
+    },
+    "country": {
+      "format": "Ungültiger Ländercode (ISO 3166-1, z. B. CH)"
     }
   },
   "trip": {
