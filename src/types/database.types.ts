@@ -174,6 +174,33 @@ export type Database = {
           },
         ]
       }
+      route_distances: {
+        Row: {
+          destination_label: string
+          distance_km: number
+          duration_seconds: number | null
+          fetched_at: string
+          origin_label: string
+          source: string
+        }
+        Insert: {
+          destination_label: string
+          distance_km: number
+          duration_seconds?: number | null
+          fetched_at?: string
+          origin_label: string
+          source: string
+        }
+        Update: {
+          destination_label?: string
+          distance_km?: number
+          duration_seconds?: number | null
+          fetched_at?: string
+          origin_label?: string
+          source?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           available_seats: number
