@@ -28,6 +28,7 @@ export async function completeProfile(rawData: unknown): Promise<ActionResult> {
       id: user.id,
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
+      ...(parsed.data.country ? { country: parsed.data.country } : {}),
     },
     { onConflict: "id" },
   );
