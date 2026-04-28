@@ -72,6 +72,33 @@ export type Database = {
           },
         ]
       }
+      fuel_prices: {
+        Row: {
+          chf_per_km: number
+          country_code: string
+          currency: string
+          effective_from: string
+          notes: string | null
+          source: string
+        }
+        Insert: {
+          chf_per_km: number
+          country_code: string
+          currency?: string
+          effective_from: string
+          notes?: string | null
+          source: string
+        }
+        Update: {
+          chf_per_km?: number
+          country_code?: string
+          currency?: string
+          effective_from?: string
+          notes?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -302,6 +329,13 @@ export type Database = {
       can_review_reason: {
         Args: { p_reviewee_id: string; p_trip_id: string }
         Returns: string
+      }
+      current_fuel_price: {
+        Args: { p_country_code: string }
+        Returns: {
+          chf_per_km: number
+          currency: string
+        }[]
       }
       get_driver_review_details: {
         Args: { p_driver_id: string }
