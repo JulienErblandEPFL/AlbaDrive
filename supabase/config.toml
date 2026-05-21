@@ -1,0 +1,13 @@
+# Supabase project config.
+# Anything managed here is version-controlled and applied by `supabase db push`
+# or `supabase functions deploy`.
+
+# ──────────────────────────────────────────────────────────────
+# Edge Functions
+# ──────────────────────────────────────────────────────────────
+
+[functions.expire-trips]
+# Mark trips as 'completed' once their departure_at has passed.
+# Runs daily at 02:00 UTC.
+schedule = "0 2 * * *"
+verify_jwt = false
