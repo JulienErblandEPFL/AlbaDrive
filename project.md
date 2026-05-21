@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the current state of this repo.
 > Kept in sync by Claude per the directive in `CLAUDE.md` (Repository Memory section).
-> Last synced: 2026-04-27 against branch `main` — the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is **complete across all four phases**. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout), `profiles.preferred_locale` is applied to the linked Supabase project and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory, DM Sans ships the `latin-ext` subset for German umlauts and Albanian ç/ë, WhatsApp pre-filled bodies are composed in the **recipient's** locale, and public pages emit `hreflang` alternates + a `/sitemap.xml` for SEO. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"` pending a native-speaker pass. **Proximity-aware search** ships on `/trips`: the `CityCombobox` is strict-select, query inputs expand to a 50 km neighbourhood via pure helpers in `src/lib/geo/`, results are tiered ("Depuis {city}" / "À proximité"), and an empty-state secondary query within 100 km surfaces the closest origins with trips as suggestion cards. All proximity work runs on the existing 48-city allowlist — no PostGIS, no external geocoder.
+> Last synced: 2026-04-28 against branch `main` — the i18n migration (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) is **complete across all four phases**. Routes live under `src/app/[locale]/...`, the four locale tracks (`fr`, `en`, `de`, `sq`) have populated message bundles, all Server Actions return error codes (`ActionResult.error: { code, params? }`), a `LocaleSwitcher` is reachable from both shells (Navbar + `(auth)` layout), `profiles.preferred_locale` is applied to the linked Supabase project and wired into `setLocale` + sign-in/OAuth callback for cross-device locale memory, DM Sans ships the `latin-ext` subset for German umlauts and Albanian ç/ë, WhatsApp pre-filled bodies are composed in the **recipient's** locale, and public pages emit `hreflang` alternates + a `/sitemap.xml` for SEO. The Albanian bundle is still flagged `_meta.review = "needs-native-speaker-review"` pending a native-speaker pass. **Proximity-aware search** ships on `/trips`: the `CityCombobox` is strict-select, query inputs expand to a 50 km neighbourhood via pure helpers in `src/lib/geo/`, results are tiered ("Depuis {city}" / "À proximité"), and an empty-state secondary query within 100 km surfaces the closest origins with trips as suggestion cards. All proximity work runs on the existing 48-city allowlist — no PostGIS, no external geocoder. **Price suggestion** ships on `/trips/create`: a non-binding low/typical/high CHF range renders below the price input, computed from cached OpenRouteService driving distance (Haversine × 1.3 fallback) × the driver's country per-passenger `chf_per_km` from `fuel_prices` (10 corridor seeds for CH/DE/FR/IT/AT/BE/AL/XK/MK/RS). A soft warning frames the cost-sharing legal posture when the typed price exceeds 1.5× typical; suggestion is informational at every layer and never blocks submit.
 
 ---
 
@@ -31,6 +31,7 @@ UI is now multilingual. Four locales are wired (`fr` default, `en`, `de`, `sq`);
 | Auth + DB | Supabase (Postgres + RLS), `@supabase/ssr` 0.10.2 |
 | Forms | `react-hook-form` 7 + `zod` 4 (via `@hookform/resolvers` 5) |
 | Dates | `date-fns` 4 + locale-aware wrapper (`src/lib/intl/date.ts` selects fr/enGB/de/sq) |
+| Distance | OpenRouteService Directions v2 (driving-car), 3 s timeout, Haversine × 1.3 fallback, label-keyed cache in `route_distances` |
 | i18n | `next-intl` 4 (App Router-native, ICU MessageFormat, RSC + Server Action support) |
 | Icons | `lucide-react` 1.8 |
 | Fonts | `next/font/google` — DM Sans (`--font-dm-sans`) |
@@ -109,6 +110,15 @@ src/
 │   │   ├── haversine.ts            # great-circle distance over WGS84 city coordinates
 │   │   ├── normalize.ts            # NFD diacritic strip — "shkoder" matches "Shkodër"
 │   │   └── expand.ts               # findCityFlexible + expandCityToNearby (returns {origin, sorted matches})
+│   ├── pricing/                    # Cost-sharing suggestion (per-passenger chf_per_km × distance, range factors)
+│   │   ├── config.ts               # PASSENGER_SHARE_FACTOR=0.5, RANGE_FACTORS, HIGH_PRICE_WARNING_MULTIPLIER=1.5, ORS_TIMEOUT_MS=3000, HAVERSINE_ROAD_FACTOR=1.3
+│   │   ├── types.ts                # PriceRange, PriceRangeResult, RouteDistance, PricingCurrency
+│   │   ├── ors.ts                  # ORS Directions client with 3 s timeout + 2× Haversine sanity check
+│   │   ├── distance.ts             # cache → ORS → Haversine fallback, label-keyed with symmetric writes
+│   │   ├── fuel.ts                 # current_fuel_price RPC wrapper (returns null on miss)
+│   │   ├── range.ts                # pure low/typical/high calculator rounded to 0.50 CHF
+│   │   ├── suggest.ts              # orchestrator: driverCountry → trip-origin country → null
+│   │   └── index.ts                # barrel re-exporting config, types, and the four helpers
 │   ├── intl/date.ts                # locale-aware date-fns wrapper + useFormatLocalizedDate
 │   ├── intl/seo.ts                 # buildLocaleAlternates, buildCanonical, getOgLocale (used by every public page)
 │   ├── intl/translate.test.ts      # parity test — every fr/* key exists in en/de/sq
@@ -122,7 +132,10 @@ supabase/
 │   ├── 20260415000001_create_profiles.sql
 │   ├── 20260415000002_create_trips.sql
 │   ├── 20260415000003_create_bookings.sql
-│   └── 20260424120000_create_reviews.sql
+│   ├── 20260424120000_create_reviews.sql
+│   ├── 20260428000001_add_profile_country.sql      # ISO-3166 alpha-2, nullable, for fuel-rate lookup
+│   ├── 20260428000002_create_route_distances.sql   # ORS cache, label-keyed, RLS select-only + service-role writes
+│   └── 20260428000003_create_fuel_prices.sql       # per-country chf_per_km + currency tag, current_fuel_price RPC
 └── functions/expire-trips/index.ts # Deno edge fn — mark past trips 'completed'
 ```
 
@@ -136,7 +149,7 @@ supabase/
 
 ### Data model (Postgres, all RLS-enabled)
 
-- **`profiles`** — `id` = `auth.users.id`, `full_name`, `phone` (E.164, CHECK-constrained, unique per active user), `avatar_url`, soft `deleted_at`.
+- **`profiles`** — `id` = `auth.users.id`, `full_name`, `phone` (E.164, CHECK-constrained, unique per active user), `avatar_url`, `country` (nullable ISO-3166 alpha-2, used by the price-suggestion helper to pick the driver's fuel rate; falls back to the trip-origin country when NULL), soft `deleted_at`.
   - Public view **`profiles_public`** exposes only `id, full_name, avatar_url` for trip listings (bypasses RLS via `SECURITY DEFINER` — contains no PII).
   - RLS: owner reads own profile; anyone with an **accepted booking** with that profile reads it too (gating WhatsApp phone exposure).
 - **`trips`** — `driver_id`, `origin`/`destination` (JSONB `{label, lat, lng, place_id}`), `departure_at`, `total_seats` (1–9), `available_seats`, `price_per_seat`, `status` (`open | full | cancelled | completed`).
@@ -154,6 +167,9 @@ supabase/
   - New RPCs: `get_passenger_review_summary(passenger) → jsonb | null` (gated on `has_booking_on_my_trip`), `get_driver_review_details(driver) → jsonb | null` (gated on `has_accepted_booking_with`).
 - **`profiles_public`** view was dropped and recreated — now also exposes `driver_rating_avg` and `driver_rating_count` (computed via correlated subquery; no triggers, no materialised data). Passenger aggregate is deliberately NOT exposed here and must be fetched via `get_passenger_review_summary`.
 - **Security-definer helpers** — `is_trip_driver`, `is_trip_passenger`, `has_accepted_booking_with`, `can_review`, `can_review_reason`, `has_booking_on_my_trip`. Used in cross-table RLS to avoid infinite recursion.
+- **`route_distances`** — `(origin_label, destination_label)` primary key over canonical labels from `cities.ts`; `distance_km NUMERIC(7,2)`, `duration_seconds INT?`, `source` (`ors` or `haversine_fallback`), `fetched_at`. RLS: `authenticated` reads anything; no row-level write policy — only the service-role client writes (one cache miss writes both directions). Asymmetry ≤1% accepted to halve cache misses.
+- **`fuel_prices`** — `(country_code, effective_from)` composite primary key; `chf_per_km NUMERIC(6,4)` is the per-passenger cost-sharing rate (`pump_chf_per_l × consumption_l_per_100km/100 × 0.50`); `currency` (`CHF` or `EUR`, NOT NULL default `CHF`) carries the natural jurisdiction tag for forward-compat with jurisdiction-aware pricing (April 2026 legal analysis); `source` documents the citation, `notes` records the consumption baseline. RLS: `authenticated` reads anything; no write policy (service-role only).
+  - RPC **`current_fuel_price(p_country_code TEXT) → (chf_per_km, currency)`** — `STABLE SECURITY DEFINER`; returns the most-recent row with `effective_from <= CURRENT_DATE`. Used by `src/lib/pricing/fuel.ts`.
 
 ### Background job
 
@@ -177,6 +193,7 @@ supabase/
 - **Browse — empty-state suggestions** — when the primary query returns 0 results AND `from` matched a known city, a secondary aggregation query (`LIMIT 50` at the Supabase layer, inheriting `to`/`date` filters and dropping `from`) groups its candidates by origin city, keeps only known cities within `NEARBY_RADIUS_KM` (100 km) of the user's input, sorts by ascending distance, and surfaces the closest 3 as `SuggestionCards` beneath the empty-state message. Each card links to `/trips` with the suggested origin substituted.
 - **Detail** (`/trips/[id]`) — public; shows route, departure, seats, price, vehicle, notes, driver first-initial avatar, `BookingSection`; handles cancelled / full / own-trip / unauth states.
 - **List of cities** — 48 pre-geocoded cities across CH, DE, FR, AT, IT, BE, AL, XK, MK, RS (`src/lib/constants/cities.ts`). Geographic helpers in `src/lib/geo/` (haversine, NFD-based diacritic normalize, expand) operate purely on this allowlist — no external geocoder, no PostGIS extensions.
+- **Price suggestion** (`/trips/create`) — `<PriceSuggestionHint />` (`src/app/[locale]/(main)/trips/create/PriceSuggestionHint.tsx`) renders a non-binding low/typical/high CHF range below the price input on Step 3. The component calls the `getSuggestedPriceRange` Server Action (300 ms debounce on route changes) which combines: cached ORS road distance from `route_distances` (Haversine × 1.3 fallback when ORS is unreachable, returns 503, hits the 3 s timeout, or fails the 2× Haversine sanity check); the driver's per-passenger `chf_per_km` from `fuel_prices` resolved via `profiles.country → trip-origin country → null` (renders "Suggestion indisponible" when no rate is available); and `calculatePriceRange` (`distance × rate × {0.85, 1.0, 1.15}`, rounded to nearest CHF 0.50). The `fuel_prices.currency` column threads `CHF`/`EUR` through `PriceRange.currency` for forward-compat with jurisdiction-aware pricing per the April 2026 legal analysis; Phase 1 displays CHF regardless via `Intl.NumberFormat`. A soft warning (`role="note"`) appears when the typed price exceeds `HIGH_PRICE_WARNING_MULTIPLIER` (1.5×) typical, framing the cost-sharing legal posture. Suggestion is informational at every layer — never auto-fills, never blocks submit, never validated server-side.
 
 ### Bookings
 - **Request** (`requestBooking`) — verifies passenger has phone; blocks self-booking, closed trips, oversized requests; handles duplicate-unique-violation with a human message.
@@ -229,7 +246,10 @@ supabase/
 - `src/lib/geo/{haversine,normalize,expand}.test.ts` — pure-helper tests covering haversine math against well-known city pairs (Genève↔Lausanne, Bern↔Biel/Bienne, München↔Augsburg, Pristina↔Tirana, antipodal sanity), diacritic round-trips for German umlauts and Albanian ç/ë (München, Shkodër, Korçë, Düsseldorf, Niš), and city expansion sort/radius semantics.
 - Shared Supabase mock factory (`src/lib/test-utils/supabase-mock.ts`) — `MOCK_USER`/`MOCK_PASSENGER` IDs are RFC 4122 UUID-v4 shape so they pass zod's `.uuid()` check.
 - `vitest.setup.ts` stubs `next/cache` and `next/headers`.
-- Server-action assertions are now keyed on error **codes** (`expect(result.error.code).toBe("errors.booking.self_booking")`) — locale-agnostic. 122 tests, all green.
+- `src/lib/pricing/{range,ors,distance,fuel,suggest}.test.ts` — pricing module unit tests: range calculator (sanity-check trip outputs Bern↔Lyon, Genève↔Pristina, currency tagging, rounding, monotonicity, negative-input defence); ORS client (success path, missing key, 429, 5xx, timeout via fake timers, sanity-check rejection); distance cache (cache hit, cache miss → ORS → symmetric write of both directions, fallback to Haversine on ORS failure); fuel rate RPC (CH→CHF/0.0629, DE→EUR/0.0564, empty result, RPC error → null); orchestrator (driver country priority, trip-origin fallback, null on no fuel rate, null on unknown city).
+- `src/app/[locale]/(main)/trips/create/PriceSuggestionHint.test.tsx` — component behaviour: idle copy when route missing, range render on success, "estimation" tag on Haversine source, "Suggestion indisponible" on null data and on Server Action error, high-price warning trigger and hide threshold.
+- `src/lib/validations/auth.schema.test.ts` and `src/app/[locale]/(auth)/complete-profile/actions.test.ts` — country picker round-trip on `completeProfile`.
+- Server-action assertions are now keyed on error **codes** (`expect(result.error.code).toBe("errors.booking.self_booking")`) — locale-agnostic. 164 tests, all green.
 
 ---
 
@@ -238,7 +258,9 @@ supabase/
 The **i18n migration is fully done** (`/home/julienerbland/.claude/plans/zany-squishing-graham.md`) — Phases A, B, C, and D are all on `main`. The plan can be considered closed. The ratings & reviews plan (`docs/superpowers/plans/2026-04-24-ratings-and-reviews.md`) is also fully executed.
 
 Natural next candidates (not started):
-- **Native review of `sq/*`** before serving to real users — every Albanian bundle carries `_meta.review = "needs-native-speaker-review"`. The largest open i18n risk.
+- **One-shot ORS backfill script** for the 1,128 (48 × 47) city pairs to warm `route_distances` before any marketing push — Phase 1 ships lazy-only.
+- **Scheduled refresh of `fuel_prices`** — Phase 1 ships hardcoded 2026-Q1 seeds; a cron / edge function refresh against TCS / ADAC / DGEC / MISE / ÖAMTC / globalpetrolprices.com is deferred.
+- **Native review of `sq/*`** before serving to real users — every Albanian bundle (including the new `priceSuggestion` block and the complete-profile `country*` keys) carries `_meta.review = "needs-native-speaker-review"`. The largest open i18n risk.
 - Driver can edit a trip (only cancel + create today).
 - Pagination / infinite scroll on `/trips` — capped at `MAX_TRIPS_PER_PAGE` (100) today; page 2+ is not yet implemented.
 - Notifications (email on booking accepted/declined — no provider wired).
