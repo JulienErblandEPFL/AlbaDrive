@@ -108,6 +108,14 @@
     "notesPlaceholder": "ex: Point de rendez-vous, stops prévus…",
     "previous": "Précédent",
     "next": "Suivant",
-    "publish": "Publier le trajet"
+    "publish": "Publier le trajet",
+    "priceSuggestion": {
+      "idle": "Choisissez votre itinéraire pour voir un prix suggéré",
+      "loading": "Calcul en cours…",
+      "label": "Suggestion :",
+      "estimated": "estimation",
+      "unavailable": "Suggestion indisponible",
+      "highWarning": "Au-dessus de l'usage habituel pour le partage des frais. Les prix élevés peuvent être considérés comme du transport commercial plutôt que du covoiturage."
+    }
   }
 }

@@ -108,6 +108,14 @@
     "notesPlaceholder": "z. B. Treffpunkt, geplante Zwischenstopps…",
     "previous": "Zurück",
     "next": "Weiter",
-    "publish": "Fahrt veröffentlichen"
+    "publish": "Fahrt veröffentlichen",
+    "priceSuggestion": {
+      "idle": "Wählen Sie Ihre Route, um einen Preisvorschlag zu sehen",
+      "loading": "Wird berechnet…",
+      "label": "Vorschlag:",
+      "estimated": "geschätzt",
+      "unavailable": "Vorschlag nicht verfügbar",
+      "highWarning": "Über dem üblichen Bereich für Kostenbeteiligung. Höhere Preise können als gewerblicher Transport statt Fahrgemeinschaft gewertet werden."
+    }
   }
 }

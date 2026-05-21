@@ -111,6 +111,14 @@
     "notesPlaceholder": "p.sh. Pika takimi, ndalesa të planifikuara…",
     "previous": "Mbrapa",
     "next": "Tjetra",
-    "publish": "Publiko udhëtimin"
+    "publish": "Publiko udhëtimin",
+    "priceSuggestion": {
+      "idle": "Zgjidhni itinerarin tuaj për të parë çmimin e sugjeruar",
+      "loading": "Duke llogaritur…",
+      "label": "Sugjerim:",
+      "estimated": "vlerësim",
+      "unavailable": "Sugjerimi i padisponueshëm",
+      "highWarning": "Mbi përdorimin e zakonshëm për ndarjen e shpenzimeve. Çmimet e larta mund të konsiderohen si transport komercial në vend të bashkudhëtimit."
+    }
   }
 }

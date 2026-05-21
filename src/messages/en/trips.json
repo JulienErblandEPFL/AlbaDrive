@@ -108,6 +108,14 @@
     "notesPlaceholder": "e.g. Meeting point, planned stops…",
     "previous": "Previous",
     "next": "Next",
-    "publish": "Publish trip"
+    "publish": "Publish trip",
+    "priceSuggestion": {
+      "idle": "Pick your route to see a suggested price",
+      "loading": "Calculating…",
+      "label": "Suggested:",
+      "estimated": "estimated",
+      "unavailable": "Suggestion unavailable",
+      "highWarning": "Above the usual cost-sharing range. Higher prices may be considered commercial transport rather than carpooling."
+    }
   }
 }
