@@ -1,242 +1,495 @@
-/**
- * Database types for AlbaDrive — Supabase / PostgreSQL
- *
- * IMPORTANT: This file was written manually for initial development.
- * Regenerate after every migration with:
- *   supabase gen types typescript --linked > types/database.types.ts
- *
- * Never write DB column types by hand after the project is linked.
- * Always use: Database["public"]["Tables"]["<table>"]["Row"]
- */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-// ============================================================
-// DOMAIN ENUMS
-// ============================================================
-
-export type TripStatus = "open" | "full" | "cancelled" | "completed";
-
-export type BookingStatus =
-  | "pending"       // Awaiting driver response
-  | "accepted"      // Driver accepted — WhatsApp link unlocked for both parties
-  | "declined"      // Driver declined (or auto-declined when trip became full)
-  | "cancelled"     // Passenger cancelled their own booking
-  | "trip_cancelled"; // Driver cancelled the trip (set by DB trigger)
-
-// ============================================================
-// JSONB TYPES
-// ============================================================
-
-/**
- * Geocoded location from Nominatim OSM.
- * Stored as JSONB in trips.origin and trips.destination.
- * Validated at application level before insertion.
- */
-export interface LocationJsonb {
-  /** Human-readable label, e.g. "Genève, Suisse" */
-  label: string;
-  /** Latitude (WGS84) */
-  lat: number;
-  /** Longitude (WGS84) */
-  lng: number;
-  /** Nominatim place_id for deduplication, e.g. "node/123456" */
-  place_id?: string;
-}
-
-// ============================================================
-// DATABASE SCHEMA
-// ============================================================
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
-      // ----------------------------------------------------------
-      // profiles — extends auth.users
-      // ----------------------------------------------------------
-      profiles: {
-        Row: {
-          id: string;          // UUID — matches auth.users.id
-          full_name: string;
-          phone: string;       // E.164 format, e.g. "+41791234567"
-          avatar_url: string | null;
-          deleted_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id: string;
-          full_name: string;
-          phone: string;
-          avatar_url?: string | null;
-          deleted_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          full_name?: string;
-          phone?: string;
-          avatar_url?: string | null;
-          deleted_at?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-
-      // ----------------------------------------------------------
-      // trips — driver-published trips
-      // ----------------------------------------------------------
-      trips: {
-        Row: {
-          id: string;
-          driver_id: string;
-          origin: LocationJsonb;
-          destination: LocationJsonb;
-          departure_at: string;      // ISO 8601 timestamptz
-          total_seats: number;
-          available_seats: number;
-          price_per_seat: number | null;
-          vehicle_description: string | null;
-          notes: string | null;
-          status: TripStatus;
-          deleted_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          driver_id: string;
-          origin: LocationJsonb;
-          destination: LocationJsonb;
-          departure_at: string;
-          total_seats: number;
-          available_seats: number;
-          price_per_seat?: number | null;
-          vehicle_description?: string | null;
-          notes?: string | null;
-          status?: TripStatus;
-          deleted_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          origin?: LocationJsonb;
-          destination?: LocationJsonb;
-          departure_at?: string;
-          total_seats?: number;
-          available_seats?: number;
-          price_per_seat?: number | null;
-          vehicle_description?: string | null;
-          notes?: string | null;
-          status?: TripStatus;
-          deleted_at?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-
-      // ----------------------------------------------------------
-      // bookings — passenger seat requests
-      // ----------------------------------------------------------
       bookings: {
         Row: {
-          id: string;
-          trip_id: string;
-          passenger_id: string;
-          seats_requested: number;
-          status: BookingStatus;
-          passenger_message: string | null;
-          deleted_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          deleted_at: string | null
+          id: string
+          passenger_id: string
+          passenger_message: string | null
+          seats_requested: number
+          status: string
+          trip_id: string
+          updated_at: string
+        }
         Insert: {
-          id?: string;
-          trip_id: string;
-          passenger_id: string;
-          seats_requested?: number;
-          status?: BookingStatus;
-          passenger_message?: string | null;
-          deleted_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          passenger_id: string
+          passenger_message?: string | null
+          seats_requested?: number
+          status?: string
+          trip_id: string
+          updated_at?: string
+        }
         Update: {
-          seats_requested?: number;
-          status?: BookingStatus;
-          passenger_message?: string | null;
-          deleted_at?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-    };
-
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          passenger_id?: string
+          passenger_message?: string | null
+          seats_requested?: number
+          status?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          country: string | null
+          created_at: string
+          deleted_at: string | null
+          full_name: string
+          id: string
+          phone: string
+          preferred_locale: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          full_name: string
+          id: string
+          phone: string
+          preferred_locale?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          full_name?: string
+          id?: string
+          phone?: string
+          preferred_locale?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trip_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trip_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          available_seats: number
+          created_at: string
+          deleted_at: string | null
+          departure_at: string
+          destination: Json
+          driver_id: string
+          id: string
+          notes: string | null
+          origin: Json
+          price_per_seat: number | null
+          status: string
+          total_seats: number
+          updated_at: string
+          vehicle_description: string | null
+        }
+        Insert: {
+          available_seats: number
+          created_at?: string
+          deleted_at?: string | null
+          departure_at: string
+          destination: Json
+          driver_id: string
+          id?: string
+          notes?: string | null
+          origin: Json
+          price_per_seat?: number | null
+          status?: string
+          total_seats: number
+          updated_at?: string
+          vehicle_description?: string | null
+        }
+        Update: {
+          available_seats?: number
+          created_at?: string
+          deleted_at?: string | null
+          departure_at?: string
+          destination?: Json
+          driver_id?: string
+          id?: string
+          notes?: string | null
+          origin?: Json
+          price_per_seat?: number | null
+          status?: string
+          total_seats?: number
+          updated_at?: string
+          vehicle_description?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
-      // ----------------------------------------------------------
-      // profiles_public — safe for trip listings, no phone column
-      // ----------------------------------------------------------
       profiles_public: {
         Row: {
-          id: string;
-          full_name: string;
-          avatar_url: string | null;
-        };
-        Relationships: [];
-      };
-    };
-
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-  };
+          avatar_url: string | null
+          driver_rating_avg: number | null
+          driver_rating_count: number | null
+          full_name: string | null
+          id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          driver_rating_avg?: never
+          driver_rating_count?: never
+          full_name?: string | null
+          id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          driver_rating_avg?: never
+          driver_rating_count?: never
+          full_name?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Functions: {
+      can_review: {
+        Args: { p_reviewee_id: string; p_trip_id: string }
+        Returns: boolean
+      }
+      can_review_reason: {
+        Args: { p_reviewee_id: string; p_trip_id: string }
+        Returns: string
+      }
+      get_driver_review_details: {
+        Args: { p_driver_id: string }
+        Returns: Json
+      }
+      get_passenger_review_summary: {
+        Args: { p_passenger_id: string }
+        Returns: Json
+      }
+      has_accepted_booking_with: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
+      has_booking_on_my_trip: {
+        Args: { p_passenger_id: string }
+        Returns: boolean
+      }
+      is_trip_driver: { Args: { p_trip_id: string }; Returns: boolean }
+      is_trip_passenger: { Args: { p_trip_id: string }; Returns: boolean }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
 
-// ============================================================
-// CONVENIENCE ROW TYPES
-// Use these instead of inline Database["public"]["Tables"]... access
-// ============================================================
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-export type ProfileRow       = Database["public"]["Tables"]["profiles"]["Row"];
-export type ProfileInsert    = Database["public"]["Tables"]["profiles"]["Insert"];
-export type ProfileUpdate    = Database["public"]["Tables"]["profiles"]["Update"];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-export type TripRow          = Database["public"]["Tables"]["trips"]["Row"];
-export type TripInsert       = Database["public"]["Tables"]["trips"]["Insert"];
-export type TripUpdate       = Database["public"]["Tables"]["trips"]["Update"];
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
-export type BookingRow       = Database["public"]["Tables"]["bookings"]["Row"];
-export type BookingInsert    = Database["public"]["Tables"]["bookings"]["Insert"];
-export type BookingUpdate    = Database["public"]["Tables"]["bookings"]["Update"];
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
-export type ProfilePublicRow = Database["public"]["Views"]["profiles_public"]["Row"];
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
-// ============================================================
-// COMPOSITE TYPES — common joins used in Server Components
-// ============================================================
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
-/** Trip with the driver's public profile (no phone). Used in trip listings. */
-export type TripWithDriver = TripRow & {
-  driver: ProfilePublicRow;
-};
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
-/**
- * Booking with public trip info + passenger's public info.
- * Used in the driver's booking management view.
- */
-export type BookingWithPassenger = BookingRow & {
-  passenger: ProfilePublicRow;
-  trip: Pick<TripRow, "id" | "origin" | "destination" | "departure_at" | "status">;
-};
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
 
-/**
- * Booking with trip + driver's public info.
- * Used in the passenger's booking history view.
- */
-export type BookingWithTrip = BookingRow & {
-  trip: TripWithDriver;
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// Project-specific narrowings (hand-maintained, not emitted by `gen types`).
+// Postgres stores these as `text`/`jsonb`; the app treats them as literal
+// unions / structured shapes. Re-append this block after every regeneration.
+// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Full profile of the other party in an ACCEPTED booking.
- * Includes phone — only accessible via the RLS-gated Server Action
- * `getWhatsAppLink()`. Never store in client state.
- */
-export type AcceptedBookingPartyProfile = ProfileRow;
+export type TripStatus = "open" | "full" | "cancelled" | "completed"
+
+export type BookingStatus =
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "cancelled"
+  | "trip_cancelled"
+
+export type LocationJsonb = {
+  label: string
+  lat: number
+  lng: number
+  place_id?: string | null
+}
+
+export type TripRow = Omit<
+  Database["public"]["Tables"]["trips"]["Row"],
+  "status" | "origin" | "destination"
+> & {
+  status: TripStatus
+  origin: LocationJsonb
+  destination: LocationJsonb
+}
+
+export type BookingRow = Omit<
+  Database["public"]["Tables"]["bookings"]["Row"],
+  "status"
+> & {
+  status: BookingStatus
+}
+
+export type ReviewRow = Database["public"]["Tables"]["reviews"]["Row"]
+
+// Shape returned by the RPCs get_passenger_review_summary /
+// get_driver_review_details. `null` means "caller not authorised".
+export type ReviewSummaryRaw = {
+  avg: number
+  count: number
+  recent: Array<{
+    id: string
+    rating: number
+    comment: string | null
+    reviewer_full_name: string
+    created_at: string
+  }>
+} | null
+
+// Shape returned by the Server Actions (after pseudonymisation).
+export type ReviewSummary = {
+  avg: number
+  count: number
+  recent: Array<{
+    id: string
+    rating: number
+    comment: string | null
+    reviewerDisplayName: string
+    createdAt: string
+  }>
+}

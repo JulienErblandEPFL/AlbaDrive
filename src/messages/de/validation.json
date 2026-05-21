@@ -1,0 +1,62 @@
+{
+  "auth": {
+    "email": { "invalid": "Ungültige E-Mail" },
+    "password": {
+      "required": "Passwort erforderlich",
+      "too_short": "Das Passwort muss mindestens 8 Zeichen lang sein"
+    },
+    "confirm_password": { "required": "Bestätigung erforderlich" },
+    "passwords_dont_match": "Passwörter stimmen nicht überein",
+    "full_name": {
+      "too_short": "Der Name muss mindestens 2 Zeichen lang sein",
+      "too_long": "Der Name ist zu lang"
+    },
+    "phone": {
+      "format": "Erforderliches Format: +41791234567 (mit Ländervorwahl beginnen)"
+    },
+    "country": {
+      "format": "Ungültiger Ländercode (ISO 3166-1, z. B. CH)"
+    }
+  },
+  "trip": {
+    "location": {
+      "label_required": "Ort erforderlich",
+      "lat_required": "Breitengrad erforderlich",
+      "lng_required": "Längengrad erforderlich"
+    },
+    "departure_at": {
+      "invalid": "Ungültiges Datumsformat",
+      "future": "Die Abfahrt muss in der Zukunft liegen"
+    },
+    "total_seats": {
+      "min": "Mindestens 1 Sitzplatz erforderlich",
+      "max": "Maximal 9 Sitzplätze"
+    },
+    "id": { "invalid": "Ungültige Fahrt-ID." },
+    "form": {
+      "origin_required": "Bitte wählen Sie eine Abfahrtsstadt",
+      "destination_required": "Bitte wählen Sie eine Ankunftsstadt",
+      "date_required": "Datum erforderlich",
+      "time_required": "Uhrzeit erforderlich",
+      "same_city": "Abfahrts- und Ankunftsstadt müssen unterschiedlich sein",
+      "city_not_recognized": "Stadt nicht erkannt. Bitte versuchen Sie es erneut."
+    }
+  },
+  "booking": {
+    "id": { "invalid": "Ungültige Buchungs-ID." },
+    "trip_id": { "invalid": "Ungültige Fahrt-ID." }
+  },
+  "review": {
+    "trip_id": { "invalid": "Ungültige Fahrt-ID." },
+    "reviewee_id": { "invalid": "Ungültige Benutzer-ID." },
+    "user_id": { "invalid": "Ungültige Benutzer-ID." },
+    "rating": {
+      "required": "Bitte wähle eine Bewertung.",
+      "range": "Die Bewertung muss zwischen 1 und 5 liegen."
+    },
+    "comment": { "too_long": "Der Kommentar ist zu lang (maximal 1000 Zeichen)." }
+  },
+  "locale": {
+    "invalid": "Ungültige Sprache."
+  }
+}

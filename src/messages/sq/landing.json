@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "metadata": {
+    "title": "AlbaDrive — Udhëtime së bashku për diasporën shqiptare në Evropë",
+    "description": "Udhëtime të besueshme për diasporën shqiptare. Gjenevë → Prishtinë, Mynih → Tiranë dhe më shumë."
+  },
+  "header": {
+    "nav": "Navigimi",
+    "trips": "Udhëtimet",
+    "dashboard": "Paneli",
+    "signIn": "Hyni",
+    "register": "Regjistrohu"
+  },
+  "hero": {
+    "ariaLabel": "Kreu",
+    "badge": "Komuniteti shqiptar në Evropë",
+    "headline_part1": "Udhëtoni së bashku.",
+    "headline_part2": "Drejt Ballkanit.",
+    "subtitle": "Udhëtime të besueshme për diasporën shqiptare. Gjenevë → Prishtinë, Mynih → Tiranë dhe më shumë."
+  },
+  "howItWorks": {
+    "title": "Si funksionon?",
+    "subtitle": "Tri hapa të thjeshta për të udhëtuar me komunitetin.",
+    "imgAlt": "Urë shqiptare si simbol i lidhjes së komunitetit",
+    "step1": {
+      "title": "Kërkoni një udhëtim",
+      "description": "Shfletoni udhëtimet e disponueshme në korridorin Evropë ↔ Ballkan. Filtroni sipas qytetit të nisjes, destinacionit dhe datës."
+    },
+    "step2": {
+      "title": "Rezervoni një vend",
+      "description": "Dërgoni një kërkesë rezervimi te shoferi me një mesazh opsional. Asnjë pagesë online."
+    },
+    "step3": {
+      "title": "Udhëtoni së bashku",
+      "description": "Pas pranimit, kontaktoni shoferin direkt në WhatsApp për të organizuar pikën e takimit."
+    }
+  },
+  "driverCta": {
+    "title": "Po ktheheni në Shqipëri ose Kosovë?",
+    "subtitle": "Ofroni udhëtimin tuaj dhe ndani shpenzimet me bashkatdhetarët. Thjesht, falas, në komunitet.",
+    "button": "Ofro një udhëtim",
+    "alreadyMember": "Tashmë i regjistruar?",
+    "signInLink": "Hyni"
+  },
+  "footer": {
+    "tagline": "Udhëtime së bashku për diasporën shqiptare në Evropë.",
+    "ariaLabel": "Lidhjet e fundit të faqes",
+    "trips": "Udhëtimet",
+    "register": "Regjistrohu"
+  }
+}

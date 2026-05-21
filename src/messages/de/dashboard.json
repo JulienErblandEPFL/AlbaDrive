@@ -1,0 +1,53 @@
+{
+  "metadata": {
+    "title": "Dashboard — AlbaDrive"
+  },
+  "page": {
+    "greeting": "Hallo, {firstName}!",
+    "subtitle": "Ihr AlbaDrive-Dashboard",
+    "createCta": "+ Anbieten",
+    "passengerFallback": "Mitfahrer/in",
+    "driverFallback": "Fahrer/in"
+  },
+  "tabs": {
+    "ariaLabel": "Dashboard",
+    "driver": "Meine Fahrten",
+    "passenger": "Meine Anfragen"
+  },
+  "empty": {
+    "driverTitle": "Keine Fahrten angeboten",
+    "driverDescription": "Teilen Sie Ihre nächste Route mit der Gemeinschaft.",
+    "driverCta": "Fahrt anbieten",
+    "passengerTitle": "Keine Buchungen",
+    "passengerDescription": "Finden Sie eine verfügbare Fahrt und buchen Sie einen Platz.",
+    "passengerCta": "Fahrten ansehen"
+  },
+  "driverCard": {
+    "seatsAvailable": "{available}/{total} Plätze frei",
+    "seats": "{count, plural, one {# Platz} other {# Plätze}}",
+    "pricePerSeat": "{price} CHF / Platz",
+    "requestsHeader": "Anfragen ({count})",
+    "noRequests": "Noch keine Anfragen",
+    "cancelTrip": "Diese Fahrt absagen",
+    "confirmCancelTrip": "Diese Fahrt absagen? Alle aktiven Buchungen werden storniert.",
+    "confirmAccept": "Anfrage von {name} annehmen?",
+    "confirmDecline": "Anfrage von {name} ablehnen?",
+    "newPassenger": "Neue/r Mitfahrer/in",
+    "acceptLabel": "{name} annehmen",
+    "declineLabel": "{name} ablehnen",
+    "accept": "Annehmen",
+    "reviewSection": "Mitfahrer/innen bewerten",
+    "reviewButton": "Bewertung für {name} abgeben"
+  },
+  "passengerCard": {
+    "seats": "{count, plural, one {# Platz} other {# Plätze}}",
+    "driverPrefix": "Fahrer/in:",
+    "tripCancelledTitle": "Ihr/e Fahrer/in hat diese Fahrt abgesagt.",
+    "tripCancelledDescription": "Ihre Buchung wurde automatisch storniert. Sie können nach einer anderen Fahrt suchen.",
+    "acceptedNotice": "✓ Buchung bestätigt! Kontaktieren Sie den/die Fahrer/in über WhatsApp.",
+    "whatsappButton": "Über WhatsApp kontaktieren",
+    "cancelBooking": "Meine Buchung stornieren",
+    "confirmCancel": "Ihre Buchung stornieren?",
+    "reviewButton": "Bewertung für den/die Fahrer/in abgeben"
+  }
+}

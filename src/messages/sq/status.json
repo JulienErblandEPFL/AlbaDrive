@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "trip": {
+    "open": "I disponueshëm",
+    "full": "I plotë",
+    "cancelled": "I anuluar",
+    "completed": "I përfunduar"
+  },
+  "booking": {
+    "pending": "Në pritje",
+    "accepted": "I pranuar",
+    "declined": "I refuzuar",
+    "cancelled": "I anuluar",
+    "trip_cancelled": "Udhëtimi i anuluar"
+  }
+}

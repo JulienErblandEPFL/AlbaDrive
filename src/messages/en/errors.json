@@ -1,0 +1,51 @@
+{
+  "common": {
+    "auth_required": "Authentication required.",
+    "unauthorized": "Action not allowed.",
+    "session_expired": "Your session has expired. Please sign in again."
+  },
+  "auth": {
+    "invalid_credentials": "Incorrect email or password.",
+    "email_already_registered": "An account already exists with this email.",
+    "signup_failed": "Could not create the account. Please try again.",
+    "phone_already_used": "This phone number is already used by another account.",
+    "profile_save_failed": "Could not save the profile. Please try again."
+  },
+  "trip": {
+    "not_found": "Trip not found.",
+    "create_failed": "Could not create the trip. Please try again.",
+    "cancel_failed": "Could not cancel the trip. Please try again.",
+    "already_status": "This trip is already {status, select, cancelled {cancelled} completed {completed} other {closed}}."
+  },
+  "booking": {
+    "phone_required": "Please add a phone number to your profile before booking.",
+    "self_booking": "You can't book your own trip.",
+    "trip_closed": "This trip is no longer accepting bookings.",
+    "not_enough_seats": "{count, plural, one {Only # seat available.} other {Only # seats available.}}",
+    "duplicate_active": "You already have an active booking on this trip.",
+    "request_failed": "Booking failed. Please try again.",
+    "not_found": "Booking not found.",
+    "only_pending_acceptable": "Only pending requests can be accepted.",
+    "no_seats": "Not enough seats available.",
+    "accept_failed": "Could not accept the booking. Please try again.",
+    "not_cancellable": "This booking cannot be cancelled.",
+    "cancel_failed": "Cancellation failed. Please try again."
+  },
+  "whatsapp": {
+    "only_for_accepted": "The WhatsApp link is only available for accepted bookings.",
+    "contact_unavailable": "Contact details are unavailable.",
+    "no_phone": "Your profile does not have a phone number."
+  },
+  "review": {
+    "self_review": "You can't review yourself.",
+    "trip_not_found": "Trip not found.",
+    "trip_not_completed": "You can only review a completed trip.",
+    "window_expired": "The window to leave a review (30 days) has expired.",
+    "not_participants": "You did not share this trip with this person.",
+    "duplicate": "You have already left a review for this trip.",
+    "submit_failed": "Could not submit the review. Please try again.",
+    "summary_failed": "Could not load reviews.",
+    "unauthorized": "Action not allowed."
+  },
+  "unexpected": "Unexpected error."
+}

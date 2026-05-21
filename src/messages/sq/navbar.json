@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "home": "Kreu",
+  "trips": "Udhëtimet",
+  "dashboard": "Paneli",
+  "profile": "Profili",
+  "propose": "Ofro",
+  "proposeTrip": "Ofro një udhëtim",
+  "signOut": "Dilni",
+  "signOutLoading": "Duke dalë…",
+  "signIn": "Hyni",
+  "signInShort": "Hyni",
+  "register": "Regjistrohu",
+  "aria": {
+    "mainNav": "Navigimi kryesor",
+    "mobileNav": "Navigimi në celular",
+    "userMenu": "Menyja e përdoruesit"
+  }
+}

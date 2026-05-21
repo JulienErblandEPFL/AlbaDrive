@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "AlbaDrive — Covoiturage albanais en Europe",
+    "description": "Le covoiturage de confiance pour la diaspora albanaise. Genève → Pristina, München → Tirana et bien plus."
+  },
+  "header": {
+    "nav": "Navigation",
+    "trips": "Trajets",
+    "dashboard": "Tableau de bord",
+    "signIn": "Connexion",
+    "register": "S'inscrire"
+  },
+  "hero": {
+    "ariaLabel": "Accueil",
+    "badge": "Communauté albanaise en Europe",
+    "headline_part1": "Voyagez ensemble.",
+    "headline_part2": "Vers les Balkans.",
+    "subtitle": "Le covoiturage de confiance pour la diaspora albanaise. Genève → Pristina, München → Tirana et bien plus."
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "Trois étapes simples pour voyager avec la communauté.",
+    "imgAlt": "Pont albanais symbolisant le lien communautaire",
+    "step1": {
+      "title": "Cherchez un trajet",
+      "description": "Parcourez les trajets disponibles sur le corridor Europe ↔ Balkans. Filtrez par ville de départ, d'arrivée et par date."
+    },
+    "step2": {
+      "title": "Réservez une place",
+      "description": "Envoyez une demande de réservation au conducteur avec un message optionnel. Zéro paiement en ligne."
+    },
+    "step3": {
+      "title": "Voyagez ensemble",
+      "description": "Une fois accepté, contactez le conducteur directement sur WhatsApp pour organiser le rendez-vous."
+    }
+  },
+  "driverCta": {
+    "title": "Vous rentrez en Albanie ou au Kosovo ?",
+    "subtitle": "Proposez votre trajet et partagez les frais avec des compatriotes. Simple, gratuit, communautaire.",
+    "button": "Proposer un trajet",
+    "alreadyMember": "Déjà inscrit ?",
+    "signInLink": "Connexion"
+  },
+  "footer": {
+    "tagline": "Covoiturage pour la diaspora albanaise en Europe.",
+    "ariaLabel": "Liens footer",
+    "trips": "Trajets",
+    "register": "S'inscrire"
+  }
+}

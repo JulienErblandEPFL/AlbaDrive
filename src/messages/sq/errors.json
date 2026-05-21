@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "common": {
+    "auth_required": "Kërkohet vërtetimi.",
+    "unauthorized": "Veprim i palejuar.",
+    "session_expired": "Sesioni ka skaduar. Ju lutemi identifikohuni përsëri."
+  },
+  "auth": {
+    "invalid_credentials": "Email ose fjalëkalim i pasaktë.",
+    "email_already_registered": "Një llogari ekziston tashmë me këtë email.",
+    "signup_failed": "Llogaria nuk u krijua. Ju lutemi provoni përsëri.",
+    "phone_already_used": "Ky numër telefoni përdoret tashmë nga një llogari tjetër.",
+    "profile_save_failed": "Profili nuk u ruajt. Ju lutemi provoni përsëri."
+  },
+  "trip": {
+    "not_found": "Udhëtimi nuk u gjet.",
+    "create_failed": "Udhëtimi nuk u krijua. Ju lutemi provoni përsëri.",
+    "cancel_failed": "Udhëtimi nuk u anulua. Ju lutemi provoni përsëri.",
+    "already_status": "Ky udhëtim është tashmë {status, select, cancelled {i anuluar} completed {i përfunduar} other {i mbyllur}}."
+  },
+  "booking": {
+    "phone_required": "Ju lutemi plotësoni profilin me një numër telefoni para se të rezervoni.",
+    "self_booking": "Nuk mund të rezervoni udhëtimin tuaj.",
+    "trip_closed": "Ky udhëtim nuk pranon më rezervime.",
+    "not_enough_seats": "{count, plural, one {Vetëm # vend i disponueshëm.} other {Vetëm # vende të disponueshme.}}",
+    "duplicate_active": "Keni tashmë një rezervim aktiv për këtë udhëtim.",
+    "request_failed": "Rezervimi dështoi. Ju lutemi provoni përsëri.",
+    "not_found": "Rezervimi nuk u gjet.",
+    "only_pending_acceptable": "Vetëm kërkesat në pritje mund të pranohen.",
+    "no_seats": "Nuk ka vende të mjaftueshme.",
+    "accept_failed": "Rezervimi nuk u pranua. Ju lutemi provoni përsëri.",
+    "not_cancellable": "Ky rezervim nuk mund të anulohet.",
+    "cancel_failed": "Anulimi dështoi. Ju lutemi provoni përsëri."
+  },
+  "whatsapp": {
+    "only_for_accepted": "Lidhja WhatsApp është e disponueshme vetëm për rezervimet e pranuara.",
+    "contact_unavailable": "Të dhënat e kontaktit nuk janë të disponueshme.",
+    "no_phone": "Profili juaj nuk ka numër telefoni."
+  },
+  "review": {
+    "self_review": "Nuk mund të vlerësoni veten.",
+    "trip_not_found": "Udhëtimi nuk u gjet.",
+    "trip_not_completed": "Mund të vlerësoni vetëm një udhëtim të përfunduar.",
+    "window_expired": "Afati për të lënë një vlerësim (30 ditë) ka skaduar.",
+    "not_participants": "Nuk e keni ndarë këtë udhëtim me këtë person.",
+    "duplicate": "Keni lënë tashmë një vlerësim për këtë udhëtim.",
+    "submit_failed": "Vlerësimi dështoi. Ju lutemi provoni përsëri.",
+    "summary_failed": "Vlerësimet nuk u ngarkuan.",
+    "unauthorized": "Veprim i palejuar."
+  },
+  "unexpected": "Gabim i papritur."
+}

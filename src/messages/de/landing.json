@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "AlbaDrive — Albanische Mitfahrgelegenheiten in Europa",
+    "description": "Vertrauenswürdige Mitfahrgelegenheiten für die albanische Diaspora. Genf → Pristina, München → Tirana und mehr."
+  },
+  "header": {
+    "nav": "Navigation",
+    "trips": "Fahrten",
+    "dashboard": "Übersicht",
+    "signIn": "Anmelden",
+    "register": "Registrieren"
+  },
+  "hero": {
+    "ariaLabel": "Startseite",
+    "badge": "Albanische Gemeinschaft in Europa",
+    "headline_part1": "Gemeinsam reisen.",
+    "headline_part2": "Auf den Balkan.",
+    "subtitle": "Vertrauenswürdige Mitfahrgelegenheiten für die albanische Diaspora. Genf → Pristina, München → Tirana und mehr."
+  },
+  "howItWorks": {
+    "title": "So funktioniert's",
+    "subtitle": "Drei einfache Schritte, um mit der Community zu reisen.",
+    "imgAlt": "Albanische Brücke als Symbol des Gemeinschaftsgefühls",
+    "step1": {
+      "title": "Fahrt suchen",
+      "description": "Durchsuche verfügbare Fahrten auf der Europa-↔-Balkan-Strecke. Filtere nach Abfahrtsort, Zielort und Datum."
+    },
+    "step2": {
+      "title": "Sitzplatz buchen",
+      "description": "Sende eine Buchungsanfrage an den Fahrer mit optionaler Nachricht. Keine Online-Zahlung."
+    },
+    "step3": {
+      "title": "Gemeinsam reisen",
+      "description": "Nach der Annahme: kontaktiere den Fahrer direkt über WhatsApp, um den Treffpunkt abzustimmen."
+    }
+  },
+  "driverCta": {
+    "title": "Auf dem Weg nach Albanien oder Kosovo?",
+    "subtitle": "Biete deine Fahrt an und teile die Kosten mit Landsleuten. Einfach, kostenlos, gemeinschaftlich.",
+    "button": "Fahrt anbieten",
+    "alreadyMember": "Schon registriert?",
+    "signInLink": "Anmelden"
+  },
+  "footer": {
+    "tagline": "Mitfahrgelegenheiten für die albanische Diaspora in Europa.",
+    "ariaLabel": "Footer-Links",
+    "trips": "Fahrten",
+    "register": "Registrieren"
+  }
+}

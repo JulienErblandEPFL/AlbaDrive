@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "review": "needs-native-speaker-review",
+    "author": "Claude best-effort, 2026-04-25"
+  },
+  "dateFormat": {
+    "cardDate": "EEE d MMM 'në' HH:mm",
+    "detail": "EEEE d MMMM yyyy 'në' HH:mm",
+    "tripCard": "EEEE d MMMM 'në' HH:mm",
+    "metaShort": "d MMM yyyy"
+  },
+  "rootMetadata": {
+    "title": "AlbaDrive — Bashkëudhëtime shqiptare në Evropë",
+    "description": "Komuniteti i udhëtimit i diasporës shqiptare në Evropë. Udhëtime Genevë → Prishtinë, Mynih → Tiranë dhe më shumë."
+  },
+  "localeSwitcher": {
+    "trigger": "Ndrysho gjuhën (aktualisht {language})",
+    "menu": "Gjuhët e disponueshme"
+  }
+}

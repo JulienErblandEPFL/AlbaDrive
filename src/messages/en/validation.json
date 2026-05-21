@@ -1,0 +1,62 @@
+{
+  "auth": {
+    "email": { "invalid": "Invalid email" },
+    "password": {
+      "required": "Password required",
+      "too_short": "Password must be at least 8 characters"
+    },
+    "confirm_password": { "required": "Confirmation required" },
+    "passwords_dont_match": "Passwords do not match",
+    "full_name": {
+      "too_short": "Name must be at least 2 characters",
+      "too_long": "Name is too long"
+    },
+    "phone": {
+      "format": "Required format: +41791234567 (start with country code)"
+    },
+    "country": {
+      "format": "Invalid country code (ISO 3166-1, e.g. CH)"
+    }
+  },
+  "trip": {
+    "location": {
+      "label_required": "Location required",
+      "lat_required": "Latitude required",
+      "lng_required": "Longitude required"
+    },
+    "departure_at": {
+      "invalid": "Invalid date format",
+      "future": "Departure must be in the future"
+    },
+    "total_seats": {
+      "min": "At least 1 seat required",
+      "max": "Maximum 9 seats"
+    },
+    "id": { "invalid": "Invalid trip ID." },
+    "form": {
+      "origin_required": "Please select a departure city",
+      "destination_required": "Please select an arrival city",
+      "date_required": "Date required",
+      "time_required": "Time required",
+      "same_city": "Departure and arrival cities must be different",
+      "city_not_recognized": "Unrecognized city. Please try again."
+    }
+  },
+  "booking": {
+    "id": { "invalid": "Invalid booking ID." },
+    "trip_id": { "invalid": "Invalid trip ID." }
+  },
+  "review": {
+    "trip_id": { "invalid": "Invalid trip ID." },
+    "reviewee_id": { "invalid": "Invalid user ID." },
+    "user_id": { "invalid": "Invalid user ID." },
+    "rating": {
+      "required": "Please choose a rating.",
+      "range": "Rating must be between 1 and 5."
+    },
+    "comment": { "too_long": "Comment is too long (1000 characters maximum)." }
+  },
+  "locale": {
+    "invalid": "Invalid locale."
+  }
+}

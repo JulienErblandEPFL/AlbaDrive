@@ -1,0 +1,18 @@
+{
+  "home": "Accueil",
+  "trips": "Trajets",
+  "dashboard": "Tableau de bord",
+  "profile": "Profil",
+  "propose": "Proposer",
+  "proposeTrip": "Proposer un trajet",
+  "signOut": "Se déconnecter",
+  "signOutLoading": "Déconnexion…",
+  "signIn": "Se connecter",
+  "signInShort": "Connexion",
+  "register": "S'inscrire",
+  "aria": {
+    "mainNav": "Navigation principale",
+    "mobileNav": "Navigation mobile",
+    "userMenu": "Menu utilisateur"
+  }
+}

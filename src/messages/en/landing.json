@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "title": "AlbaDrive — Albanian carpooling across Europe",
+    "description": "Trusted carpooling for the Albanian diaspora. Geneva → Pristina, Munich → Tirana and more."
+  },
+  "header": {
+    "nav": "Navigation",
+    "trips": "Trips",
+    "dashboard": "Dashboard",
+    "signIn": "Sign in",
+    "register": "Sign up"
+  },
+  "hero": {
+    "ariaLabel": "Home",
+    "badge": "Albanian community across Europe",
+    "headline_part1": "Travel together.",
+    "headline_part2": "To the Balkans.",
+    "subtitle": "Trusted carpooling for the Albanian diaspora. Geneva → Pristina, Munich → Tirana and more."
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "subtitle": "Three simple steps to travel with the community.",
+    "imgAlt": "Albanian bridge symbolising community connection",
+    "step1": {
+      "title": "Search for a trip",
+      "description": "Browse available trips on the Europe ↔ Balkans corridor. Filter by departure city, destination and date."
+    },
+    "step2": {
+      "title": "Book a seat",
+      "description": "Send a booking request to the driver with an optional message. Zero online payment."
+    },
+    "step3": {
+      "title": "Travel together",
+      "description": "Once accepted, contact the driver directly on WhatsApp to organise the meeting point."
+    }
+  },
+  "driverCta": {
+    "title": "Heading back to Albania or Kosovo?",
+    "subtitle": "Offer your trip and share costs with fellow travellers. Simple, free, community-driven.",
+    "button": "Offer a trip",
+    "alreadyMember": "Already registered?",
+    "signInLink": "Sign in"
+  },
+  "footer": {
+    "tagline": "Carpooling for the Albanian diaspora in Europe.",
+    "ariaLabel": "Footer links",
+    "trips": "Trips",
+    "register": "Sign up"
+  }
+}

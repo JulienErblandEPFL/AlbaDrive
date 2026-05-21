@@ -1,0 +1,15 @@
+{
+  "trip": {
+    "open": "Available",
+    "full": "Full",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "booking": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "cancelled": "Cancelled",
+    "trip_cancelled": "Trip cancelled"
+  }
+}
