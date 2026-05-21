@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createTrip } from "@/app/[locale]/(main)/trips/actions";
 import { citiesByCountry, findCity } from "@/lib/constants/cities";
+import { PriceSuggestionHint } from "./PriceSuggestionHint";
 
 // ── Client-side form schema (city labels, not LocationJsonb) ────────────────
 // Messages are i18n keys (codes-as-messages pattern); the form translates them
@@ -346,6 +347,11 @@ export function CreateTripForm() {
               }
               error={errors.price_per_seat?.message ? t(errors.price_per_seat.message) : undefined}
               {...register("price_per_seat")}
+            />
+            <PriceSuggestionHint
+              originLabel={originLabel ?? ""}
+              destinationLabel={destinationLabel ?? ""}
+              enteredPrice={watch("price_per_seat")}
             />
 
             <Input
